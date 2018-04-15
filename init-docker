@@ -1,0 +1,119 @@
+#! /bin/bash
+
+# Copyright Sjors Sparreboom 2013-2018
+# Distributed under the MIT License
+# (See accompanying file LICENSE.md)
+
+COMPILER="${1?}"
+VERSION="${2?}" # has to be in fmt: x.x.x
+MESON_VERSION=0.46.0
+
+DOCKERFILE="docker/build/Dockerfile"
+
+LLVM_URL="http://llvm.org/releases/${VERSION}/llvm-${VERSION}.src.tar.xz"
+LIBCXX_URL="http://llvm.org/releases/${VERSION}/libcxx-${VERSION}.src.tar.xz"
+LIBCXXABI_URL="http://llvm.org/releases/${VERSION}/libcxxabi-${VERSION}.src.tar.xz"
+CLANG_URL="http://releases.llvm.org/${VERSION}/clang+llvm-${VERSION}-x86_64-linux-gnu-debian8.tar.xz"
+
+CMAKE_URL="https://cmake.org/files/v3.11/cmake-3.11.1-Linux-x86_64.tar.gz"
+MESON_URL="https://github.com/mesonbuild/meson/releases/download/${MESON_VERSION}/meson-${MESON_VERSION}.tar.gz"
+
+if [[ ! -d ${DOCKERFILE%/*}  ]]; then
+	mkdir -p ${DOCKERFILE%/*}
+fi
+
+echo 'FROM debian:stretch-slim' > $DOCKERFILE
+echo 'ADD . /root'             >> $DOCKERFILE
+echo 'CMD bash'                >> $DOCKERFILE
+
+
+echo 'RUN apt-get update && apt-get -y install wget gnupg' >> $DOCKERFILE
+
+echo 'RUN \
+	wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -' >> $DOCKERFILE
+
+echo "RUN \
+	echo '\n\
+        deb http://deb.debian.org/debian stretch main\n\
+        deb http://deb.debian.org/debian stretch-updates main\n\
+        deb http://security.debian.org/debian-security stretch/updates main\n\
+	# testing\n\
+        deb http://ftp.us.debian.org/debian testing main\n\
+        deb-src http://http.us.debian.org/debian testing main\n\
+	# testing security\n\
+	deb http://security.debian.org/ testing/updates main \n\
+	deb-src http://security.debian.org/ testing/updates main\n\
+	# unstable\n\
+	deb http://http.us.debian.org/debian unstable main\n\
+	deb-src http://http.us.debian.org/debian unstable main\n\
+	# llvm toolchain\n\
+	deb http://apt.llvm.org/stretch/ llvm-toolchain-stretch main\n\
+	deb-src http://apt.llvm.org/stretch/ llvm-toolchain-stretch main\n\
+	# clang 4.0\n\
+	deb http://apt.llvm.org/stretch/ llvm-toolchain-stretch-4.0 main\n\
+	deb-src http://apt.llvm.org/stretch/ llvm-toolchain-stretch-4.0 main\n\
+	# # clang 5.0\n\
+	deb http://apt.llvm.org/stretch/ llvm-toolchain-stretch-5.0 main\n\
+	deb-src http://apt.llvm.org/stretch/ llvm-toolchain-stretch-5.0 main\n\
+	# # clang 6.0\n\
+	deb http://apt.llvm.org/stretch/ llvm-toolchain-stretch-6.0 main\n\
+	deb-src http://apt.llvm.org/stretch/ llvm-toolchain-stretch-6.0 main\n\
+	' > /etc/apt/sources.list
+	" >> $DOCKERFILE
+
+echo "RUN \
+	echo \"\n\
+	Package: *\n\
+	Pin: release a=stable\n\
+	Pin-Priority: 1000\n\
+	Package: *\n\
+	Pin: release a=testing\n\
+	Pin-Priority: 500\n\
+	Package: *\n\
+	Pin: release a=unstable\n\
+	Pin-Priority: 250\n\
+	\n\
+	Package: *\n\
+	Pin: release a=llvm-toolchain-stretch-${VERSION%.*}\n\
+	Pin-Priority: 2\" > /etc/apt/preferences" >> $DOCKERFILE
+
+echo 'RUN apt-get update && apt-get -y install \
+	binutils                               \
+	xz-utils                               \
+	python3-dev                            \
+	make                                   \
+	doxygen                                \
+	git                                    \
+	tar'                  >> $DOCKERFILE
+
+# uncomment if you need to install latest cmake
+# echo "RUN \
+#         wget -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C /usr/local" >> $DOCKERFILE
+
+# intall latest ninja
+echo "RUN \
+	mkdir -p /root/tools; \
+        wget https://nirbheek.in/files/binaries/ninja/linux-amd64/ninja -O /root/tools/ninja; \
+	chmod +x /root/tools/ninja; \
+	ln -s /root/tools/ninja /usr/local/bin/ninja;" >> $DOCKERFILE
+
+# install latest meson
+echo "RUN \
+	wget --no-check-certificate --quiet -O - ${MESON_URL} | tar --strip-components=1 -xz -C /root/tools; \
+	ln -s /root/tools/meson.py /usr/local/bin/meson;" >> $DOCKERFILE
+
+if [[ "$COMPILER" = "clang" ]]; then
+	echo "RUN apt-get -y install \
+		clang-${VERSION%.*}" >> $DOCKERFILE
+fi
+
+if [[ "$COMPILER" = "clang" || "${COMPILER}" = "clang++" ]]; then
+	echo "RUN apt-get -y install \
+		clang-${VERSION%.*}" >> $DOCKERFILE
+fi
+
+if [[ "$COMPILER" = "gcc" || "${COMPILER}" = "g++" ]]; then
+	echo "RUN apt-get -y install \
+		gcc-${VERSION%%.*}    \
+		g++-${VERSION%%.*}" >> $DOCKERFILE
+fi

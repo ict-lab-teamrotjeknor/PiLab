@@ -1,0 +1,8 @@
+*.swp
+*.o
+*.a
+bin/
+test/
+build/
+TAGS
+docker/
