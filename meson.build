@@ -1,5 +1,5 @@
 project(
-  'PiLab',
+  'pilab',
   'c',
   license: 'MIT',
   default_options: [
@@ -39,7 +39,7 @@ endif
 
 add_project_arguments('-DPILAB_VERSION=@0@'.format(version), language: 'c')
 
-# pilab_inc = include_directories('include')
+pilab_inc = include_directories('include')
 
 subdir('common')
 subdir('pilab')

@@ -6,3 +6,5 @@ test/
 build/
 TAGS
 docker/
+.clang_complete
+tags
