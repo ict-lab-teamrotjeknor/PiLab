@@ -8,7 +8,7 @@ typedef struct {
 } array_list_t;
 
 
-array_list_t* create_array_list(void);
+array_list_t* array_list_create(void);
 void array_list_add(array_list_t* list, void* item);
 void array_list_cat(array_list_t* source, array_list_t* target);
 void array_list_foreach(array_list_t* list, void (*callback)(void* item));

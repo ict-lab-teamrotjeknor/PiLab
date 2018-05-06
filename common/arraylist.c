@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-array_list_t* create_array_list(void)
+array_list_t* array_list_create(void)
 {
 	array_list_t* list = (array_list_t*)malloc(sizeof(array_list_t));
 
