@@ -51,5 +51,5 @@ void hd44780_writeline(struct hd44780* lcd, int y, const char* msg);
 void hd44780_clearscreen(struct hd44780* lcd);
 void hd44780_free(struct hd44780* lcd);
 
-#endif _PILAB_HD44780_H
+#endif
 
