@@ -14,6 +14,7 @@ struct i2c_device* i2c_device_create(enum i2c_type type, int pin_base, int i2c_a
 	if (!dev)
 		return NULL;
 
+	/* TODO: Refactor to own header <14-05-18, Sjors Sparreboom> */
 	if (pcf8574Setup(pin_base, i2c_addr)) {
 		dev->i2c_addr = i2c_addr;
 		dev->pin_base = pin_base;
