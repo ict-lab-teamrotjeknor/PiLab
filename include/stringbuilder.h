@@ -10,7 +10,7 @@
 struct stringbuilder {
 	size_t capacity;
 	size_t length;
-	char *string;
+	char* string;
 };
 
 struct stringbuilder* string_builder_create();

@@ -31,7 +31,7 @@ static int string_builder_resize(struct stringbuilder* sb)
 {
 	if (!sb)
 		return SB_ERR;
-	if (sb->length == sb->capacity) {
+	if (sb->length >= sb->capacity) {
 		sb->capacity *= GROW_FACTOR;
 		sb->string = (char*)realloc(sb->string, sizeof(char) * sb->capacity);
 		if (!sb->string)
@@ -42,11 +42,13 @@ static int string_builder_resize(struct stringbuilder* sb)
 
 char* string_builder_append(struct stringbuilder* sb, const char* str)
 {
-	if (!str || string_builder_resize(sb) != SB_OK)
+	if (!str || !sb)
 		return NULL;
 	size_t str_len = strlen(str);
 	size_t sb_len = sb->length;
 	sb->length += str_len;
+	if (string_builder_resize(sb) != SB_OK)
+		return NULL;
 	return memcpy(sb->string + sb_len, str, str_len);
 }
 
