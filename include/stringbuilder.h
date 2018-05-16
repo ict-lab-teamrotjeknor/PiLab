@@ -16,6 +16,7 @@ struct stringbuilder {
 struct stringbuilder* string_builder_create();
 int string_builder_free(struct stringbuilder* sb);
 char* string_builder_append(struct stringbuilder* sb, const char* str);
+char* string_builder_prepend(struct stringbuilder* sb, const char* str);
 char* string_builder_to_string(struct stringbuilder *sb, char* buff, size_t size);
 
 #endif

@@ -52,6 +52,21 @@ char* string_builder_append(struct stringbuilder* sb, const char* str)
 	return memcpy(sb->string + sb_len, str, str_len);
 }
 
+char* string_builder_prepend(struct stringbuilder* sb, const char* str)
+{
+	if (!str || !sb)
+		return NULL;
+	size_t str_len = strlen(str);
+	size_t sb_len = sb->length;
+	sb->length += str_len;
+	if (string_builder_resize(sb) != SB_OK)
+		return NULL;
+	memmove(&sb->string[str_len], sb->string, sb_len);
+	for (size_t i = 0; i < str_len; ++i)
+		sb->string[i] = str[i];
+	return sb->string;
+}
+
 char* string_builder_to_string(struct stringbuilder *sb, char* buff, size_t size)
 {
 	if (!sb || !buff)
