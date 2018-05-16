@@ -96,3 +96,15 @@ void array_list_qsort(array_list_t* list, int compare(const void* a, const void*
 
 	qsort(list->items, list->length, sizeof(void*), compare);
 }
+
+
+int array_list_find(array_list_t* list, int compare(const void* a, const void* b), const void* data)
+{
+	for (int i = 0; i < list->length; ++i) {
+		void* item = list->items[i];
+		if (compare(item, data) == 0) {
+			return i;
+		}
+	}
+	return -1;
+}

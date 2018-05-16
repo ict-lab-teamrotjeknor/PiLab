@@ -16,5 +16,6 @@ void array_list_free(array_list_t* list);
 void array_list_insert(array_list_t* list, void* item, int index);
 void array_list_remove(array_list_t* list, int index);
 void array_list_qsort(array_list_t* list, int compare(const void* a, const void* b));
+int array_list_find(array_list_t* list, int compare(const void* a, const void* b), const void* data);
 
 #endif
