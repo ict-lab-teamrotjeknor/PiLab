@@ -1,8 +1,10 @@
 lib_pilab_common = static_library(
   'pilab-common',
   files(
-    'arraylist.c',
-    'stringbuilder.c'
+    'pilab-arraylist.c',
+    'pilab-stringbuilder.c',
+    'pilab-list.c',
+    'pilab-string.c'
   ),
   include_directories: pilab_inc
 )

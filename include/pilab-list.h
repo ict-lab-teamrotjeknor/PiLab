@@ -5,14 +5,16 @@ struct t_pilist_node;
 
 typedef void(t_pilist_callback)(struct t_pilist_node *node);
 
-struct t_pilist_node {
+struct t_pilist_node
+{
 	/* hold any item */
 	void *item;
 	/* singly linked */
 	struct t_pilist_node *next;
 };
 
-struct t_pilist {
+struct t_pilist
+{
 	/* internal head */
 	struct t_pilist_node *head;
 	/* size of the list */
