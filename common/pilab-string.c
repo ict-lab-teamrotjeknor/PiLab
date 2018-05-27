@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdlib.h>
 #include "pilab-string.h"
 
 /*
@@ -51,9 +52,9 @@ int string_charcmp(const char *string1, const char *string2)
  * Compares two ASCII chars (case independent).
  *
  * Returns:
- *   -1: string1 < string2
- *    0: string1 == string2
- *    1: string1 > string2
+ * -1: string1 < string2
+ *  0: string1 == string2
+ *  1: string1 > string2
  */
 
 int string_charcasecmp(const char *string1, const char *string2)
@@ -78,9 +79,9 @@ int string_charcasecmp(const char *string1, const char *string2)
  * Compares two strings with the first n bytes (case dependent).
  *
  * Returns:
- *    -1: string1 < string2
- *     0: string1 == string2
- *     1: string1 > string2
+ * -1: string1 < string2
+ *  0: string1 == string2
+ *  1: string1 > string2
  */
 
 int string_strcmp(const char *string1, const char *string2)
@@ -110,9 +111,9 @@ int string_strcmp(const char *string1, const char *string2)
  * Compares two strings with the first n bytes (case dependent).
  *
  * Returns:
- *    -1: string1 < string2
- *     0: string1 == string2
- *     1: string1 > string2
+ * -1: string1 < string2
+ *  0: string1 == string2
+ *  1: string1 > string2
  */
 
 int string_strncmp(const char *string1, const char *string2, size_t n)
@@ -180,9 +181,9 @@ int string_strcasecmp(const char *string1, const char *string2)
  * Compares two strings with the first n bytes (case independent).
  *
  * Returns:
- *    -1: string1 < string2
- *     0: string1 == string2
- *     1: string1 > string2
+ * -1: string1 < string2
+ *  0: string1 == string2
+ *  1: string1 > string2
  */
 
 int string_strcasencmp(const char *string1, const char *string2, size_t n)
@@ -212,4 +213,21 @@ int string_strcasencmp(const char *string1, const char *string2, size_t n)
 		return 0;
 
 	return slen1 < slen2 ? -1 : ((slen1 > slen2) ? 1 : 0);
+}
+
+/*
+ * Duplicate a string.
+ *
+ * Returns a pointer the the new string.
+ */
+
+char *string_strdup(const char *string)
+{
+	if (!string)
+		return NULL;
+	char *s = malloc(sizeof(char) * strlen(string) + 1);
+	if (!s)
+		return NULL;
+	strcpy(s, string);
+	return s;
 }
