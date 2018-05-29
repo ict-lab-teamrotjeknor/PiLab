@@ -27,6 +27,9 @@ echo 'ADD . /root'             >> $DOCKERFILE
 echo 'CMD bash'                >> $DOCKERFILE
 
 
+# possible fix for random failure error 100: (https://stackoverflow.com/questions/38002543/apt-get-update-returned-a-non-zero-code-100)
+echo 'RUN apt-get update && apt-get install -y apt-transport-https' >> $DOCKERFILE
+
 echo 'RUN apt-get update && apt-get -y install wget gnupg' >> $DOCKERFILE
 
 echo 'RUN \
