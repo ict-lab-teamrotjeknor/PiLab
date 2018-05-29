@@ -218,16 +218,25 @@ int string_strcasencmp(const char *string1, const char *string2, size_t n)
 /*
  * Duplicate a string.
  *
- * Returns a pointer the the new string.
+ * Returns a pointer the the new string, or NULL otherwise.
  */
 
 char *string_strdup(const char *string)
 {
+	char *new_str;
+
 	if (!string)
 		return NULL;
-	char *s = malloc(sizeof(char) * strlen(string) + 1);
-	if (!s)
+
+	/* We need room for 1 more char, available for adding the '\0' */
+	new_str = malloc(sizeof(char) * strlen(string) + 1);
+
+	if (!new_str) {
+		/* TODO: Log error message: Could not allocate enough memory for string_strdup */
 		return NULL;
-	strcpy(s, string);
-	return s;
+	}
+
+	strcpy(new_str, string);
+
+	return new_str;
 }

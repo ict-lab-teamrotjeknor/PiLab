@@ -3,18 +3,17 @@
 
 struct t_pilist_node;
 
-typedef void(t_pilist_callback)(struct t_pilist_node *node);
+typedef void(t_pilist_fmap_node)(struct t_pilist_node *node);
+typedef void(t_pilist_fmap_node_data)(const void *item);
 
-struct t_pilist_node
-{
-	/* hold any item */
-	void *item;
+struct t_pilist_node {
+	/* hold any data */
+	void *data;
 	/* singly linked */
 	struct t_pilist_node *next;
 };
 
-struct t_pilist
-{
+struct t_pilist {
 	/* internal head */
 	struct t_pilist_node *head;
 	/* size of the list */
@@ -24,12 +23,31 @@ struct t_pilist
 };
 
 extern struct t_pilist *pilist_create(void);
-extern void pilist_clear(struct t_pilist *pilist);
+extern struct t_pilist_node *pilist_create_node(void);
+extern void pilist_free_node(struct t_pilist_node *node);
 extern void pilist_free(struct t_pilist *pilist);
-extern void pilist_add(struct t_pilist *pilist, void *item);
-extern void pilist_foreach(struct t_pilist *pilist, t_pilist_callback callback);
+extern void pilist_add(struct t_pilist *pilist, const void *data);
+extern void pilist_clear(struct t_pilist *pilist);
+extern void pilist_foreach_node(struct t_pilist *pilist,
+				t_pilist_fmap_node *callback_fmap_node);
+extern void pilist_foreach_node_data(
+	struct t_pilist *pilist,
+	t_pilist_fmap_node_data *callback_fmap_node_data);
 extern int pilist_size(struct t_pilist *pilist);
-extern int pilist_remove_item(struct t_pilist *pilist, void *item);
-extern int pilist_remove_index(struct t_pilist *pilist, int index);
+extern struct t_pilist_node *pilist_casesearch(struct t_pilist *pilist,
+					       const void *data);
+extern struct t_pilist_node *pilist_search(struct t_pilist *pilist,
+					   const void *data);
+extern int pilist_casesearch_pos(struct t_pilist *pilist, const void *data);
+extern int pilist_search_pos(struct t_pilist *pilist, const void *data);
+extern struct t_pilist_node *pilist_get_node(struct t_pilist *pilist,
+					     int position);
+extern void *pilist_get_data(struct t_pilist *pilist, int position);
+extern void pilist_set_data(struct t_pilist_node *node, const void *data);
+extern const char *pilist_node_data_string(struct t_pilist_node *node);
+extern void pilist_remove_position(struct t_pilist *pilist, int position);
+extern void pilist_remove_data(struct t_pilist *pilist, void *data);
+extern void pilist_remove(struct t_pilist *pilist, struct t_pilist_node *node);
+extern void pilist_remove_all(struct t_pilist *pilist);
 
 #endif
