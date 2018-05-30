@@ -17,8 +17,10 @@ struct t_stringbuilder *stringbuilder_create_size(size_t alloc_size)
 	size_alloc = alloc_size;
 	sb = malloc(sizeof(*sb));
 
-	if (!sb)
+	if (!sb) {
+		/* TODO: Failed to allocate memory for char buffer in stringbuilder_create_size */
 		return NULL;
+	}
 
 	sb->string = calloc(size_alloc, sizeof(char));
 
@@ -54,7 +56,8 @@ void stringbuilder_free(struct t_stringbuilder *sb)
 	if (!sb)
 		return;
 
-	free(sb->string);
+	if (sb->string)
+		free(sb->string);
 	free(sb);
 }
 
