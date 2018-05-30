@@ -3,7 +3,8 @@ lib_pilab_common = static_library(
   files(
     'pilab-list.c',
     'pilab-string.c',
-    'pilab-stringbuilder.c'
+    'pilab-stringbuilder.c',
+    'pilab-hashtable.c',
   ),
   include_directories: pilab_inc
 )
