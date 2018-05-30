@@ -26,11 +26,11 @@ echo 'FROM debian:stretch-slim' > $DOCKERFILE
 echo 'ADD . /root'             >> $DOCKERFILE
 echo 'CMD bash'                >> $DOCKERFILE
 
+# (see: http://www.iasptk.com/ubuntu-fix-broken-package-best-solution)
+echo 'RUN if [[ -f /var/lib/apt/lists/lock ]]; then rm /var/lib/apt/lists/lock; fi' >> $DOCKERFILE
+echo 'RUN if [[ -f /var/cache/apt/archives/lock ]]; then rm /var/cache/apt/archives/lock; fi' >> $DOCKERFILE
 
-# possible fix for random failure error 100: (https://stackoverflow.com/questions/38002543/apt-get-update-returned-a-non-zero-code-100)
-echo 'RUN apt-get update && apt-get install -y apt-transport-https' >> $DOCKERFILE
-
-echo 'RUN apt-get update && apt-get -y install wget gnupg' >> $DOCKERFILE
+echo 'RUN apt-get update --fix-missing && apt-get -y install wget gnupg' >> $DOCKERFILE
 
 echo 'RUN \
 	wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -' >> $DOCKERFILE
@@ -80,7 +80,11 @@ echo "RUN \
 	Pin: release a=llvm-toolchain-stretch-${VERSION%.*}\n\
 	Pin-Priority: 2\" > /etc/apt/preferences" >> $DOCKERFILE
 
-echo 'RUN apt-get update && apt-get -y install \
+# (see: http://www.iasptk.com/ubuntu-fix-broken-package-best-solution)
+echo 'RUN if [[ -f /var/lib/apt/lists/lock ]]; then rm /var/lib/apt/lists/lock; fi' >> $DOCKERFILE
+echo 'RUN if [[ -f /var/cache/apt/archives/lock ]]; then rm /var/cache/apt/archives/lock; fi' >> $DOCKERFILE
+
+echo 'RUN apt-get update --fix-missing && apt-get -y install \
 	binutils                               \
 	xz-utils                               \
 	python3-dev                            \
