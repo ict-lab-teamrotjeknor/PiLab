@@ -5,15 +5,9 @@
 #include "pilab-hashtable.h"
 #include "pilab-list.h"
 
-#define PILAB_HASHTABLE_INTEGER "integer"
-#define PILAB_HASHTABLE_STRING  "string"
-#define PILAB_HASHTABLE_POINTER "pointer"
-
-char *hashtable_type_string[HASHTABLE_NUM_TYPES] = {
-	PILAB_HASHTABLE_INTEGER,
-	PILAB_HASHTABLE_STRING,
-	PILAB_HASHTABLE_POINTER
-};
+char *hashtable_type_string[HASHTABLE_NUM_TYPES] = { PILAB_HASHTABLE_INTEGER,
+						     PILAB_HASHTABLE_STRING,
+						     PILAB_HASHTABLE_POINTER };
 
 /*
  * Search for a hashtable type.
