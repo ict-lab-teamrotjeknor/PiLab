@@ -797,6 +797,7 @@ void hashtable_remove_item(struct t_hashtable *hashtable,
 
 	hashtable->count--;
 }
+
 /*
  * Remove item from hashtable (searches with key).
  */

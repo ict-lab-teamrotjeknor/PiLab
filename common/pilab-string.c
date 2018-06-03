@@ -218,7 +218,7 @@ int string_strcasencmp(const char *string1, const char *string2, size_t n)
 /*
  * Duplicate a string.
  *
- * Returns a pointer the the new string, or NULL otherwise.
+ * Returns a pointer the new string, or NULL otherwise.
  */
 
 char *string_strdup(const char *string)
@@ -240,3 +240,37 @@ char *string_strdup(const char *string)
 
 	return new_str;
 }
+
+/*
+ * Concatenate a two strings.
+ *
+ * Returns a pointer the new string, or NULL otherwise.
+ */
+
+char *string_strcat(const char *string1, const char *string2)
+{
+	size_t slen1, slen2;
+	int i;
+	char *new_str;
+
+	if (!string1 || !string2)
+		return NULL;
+
+	slen1 = strlen(string1);
+	slen2 = strlen(string2);
+
+	new_str = malloc(sizeof(*new_str) * (slen1 + slen2));
+
+	if (!new_str)
+		return NULL;
+
+	for (i = 0; i < (int)slen1; i++, string1++)
+		new_str[i] = *string1;
+	for (; i < (int)(slen1 + slen2); i++, string2++)
+		new_str[i] = *string2;
+	new_str[slen1 + slen2] = '\0';
+
+	return new_str;
+}
+
+/* TODO: Write a custom string_strncat function */
