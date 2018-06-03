@@ -85,6 +85,7 @@ echo 'RUN if [[ -f /var/lib/apt/lists/lock ]]; then rm /var/lib/apt/lists/lock; 
 echo 'RUN if [[ -f /var/cache/apt/archives/lock ]]; then rm /var/cache/apt/archives/lock; fi' >> $DOCKERFILE
 
 echo 'RUN apt-get update --fix-missing && apt-get -y install \
+  pkg-config                             \
 	binutils                               \
 	xz-utils                               \
 	python3-dev                            \
