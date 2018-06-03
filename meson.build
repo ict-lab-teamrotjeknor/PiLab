@@ -19,6 +19,8 @@ datadir = get_option('datadir')
 sysconfdir = get_option('sysconfdir')
 prefix = get_option('prefix')
 
+jsonc = dependency('json-c', version: '>=0.13')
+curl  = dependency('libcurl', version: '>=7.60.0')
 git = find_program('git', required: false)
 
 add_project_arguments('-DSYSCONFDIR="/@0@"'.format(sysconfdir), language : 'c')
