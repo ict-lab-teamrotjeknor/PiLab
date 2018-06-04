@@ -9,35 +9,35 @@ matrix:
     #  -- supported compilers  ------------------------------------------------
 
     # clang 3.8
-    - env: UNIT_TESTS=false C_COMPILER=clang-3.8 ENABLE_MEMCHECK=true
+    - env: UNIT_TESTS=false C_COMPILER=clang-3.8 CXX_COMPILER=clang++-3.8 ENABLE_MEMCHECK=true
 
     # clang 3.9
-    - env: UNIT_TESTS=false C_COMPILER=clang-3.9 ENABLE_MEMCHECK=true
+    - env: UNIT_TESTS=false C_COMPILER=clang-3.9 CXX_COMPILER=clang++-3.8 ENABLE_MEMCHECK=true
 
     # clang 4.0
-    - env: UNIT_TESTS=false C_COMPILER=clang-4.0 ENABLE_MEMCHECK=true
+    - env: UNIT_TESTS=false C_COMPILER=clang-4.0 CXX_COMPILER=clang++-4.0 ENABLE_MEMCHECK=true
 
     # clang 5.0
-    - env: UNIT_TESTS=false C_COMPILER=clang-5.0 ENABLE_MEMCHECK=true
+    - env: UNIT_TESTS=false C_COMPILER=clang-5.0 CXX_COMPILER=clang++-5.0 ENABLE_MEMCHECK=true
 
     # clang 6.0
-    - env: UNIT_TESTS=false C_COMPILER=clang-6.0 ENABLE_MEMCHECK=true
+    - env: UNIT_TESTS=false C_COMPILER=clang-6.0 CXX_COMPILER=clang++-6.0 ENABLE_MEMCHECK=true
 
     # gcc 5
-    - env: UNIT_TESTS=false C_COMPILER=gcc-6 ENABLE_MEMCHECK=true
+    - env: UNIT_TESTS=false C_COMPILER=gcc-5 CXX_COMPILER=g++-5 ENABLE_MEMCHECK=true
 
     # gcc 6
-    - env: UNIT_TESTS=false C_COMPILER=gcc-6 ENABLE_MEMCHECK=true
+    - env: UNIT_TESTS=false C_COMPILER=gcc-6 CXX_COMPILER=g++-6 ENABLE_MEMCHECK=true
 
     # gcc 7
-    - env: UNIT_TESTS=false C_COMPILER=gcc-7 ENABLE_MEMCHECK=true
+    - env: UNIT_TESTS=false C_COMPILER=gcc-7 CXX_COMPILER=g++-7 ENABLE_MEMCHECK=true
 
 before_install:
 
   #  -- setup default versions and override compilers if needed  --------------
   
   - if [[ "${C_COMPILER}" != ""     ]]; then export CC=${C_COMPILER};    fi
-  - if [[ "${CXX_C_COMPILER}" != "" ]]; then export CXX=${CXX_COMPILER}; fi
+  - if [[ "${CXX_COMPILER}" != "" ]]; then export CXX=${CXX_COMPILER}; fi
   - |
    if [[ "${CXX%%-*}" == "clang++" || "${CC%%-*}" == "clang" ]]; then
 
@@ -76,8 +76,18 @@ script:
   - |
     if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
       if   [[ "${CC%%-*}" == "gcc" || "${CXX%%-*}" == "g++" ]]; then
+        # install json-c dependency
+        docker exec build /bin/bash -c "(cd /root/deps/json/build && cmake -DCMAKE_C_COMPILER=/usr/bin/${CC%%-*}-${VERSION%%.*} -DCMAKE_CXX_COMPILER=/usr/bin/${CXX%%-*}-${VERSION%%.*} .. && make install)";
+        # install libcurl dependency
+        docker exec build /bin/bash -c "(cd /root/deps/libcurl && CC=/usr/bin/${CC%%-*}-${VERSION%%.*} ./configure && make install)"
+        # build project with meson
         docker exec build /bin/bash -c "CXX=${CXX%%-*}-${VERSION%%.*} CC=${CC%%-*}-${VERSION%%.*} meson /root /root/build";
       elif [[ "${CC%%-*}" == "clang" || "${CXX-*}" == "clang++" ]]; then
+        # install json-c dependency
+        docker exec build /bin/bash -c "(cd /root/deps/json/build && cmake -DCMAKE_C_COMPILER=/usr/bin/${CC%%-*}-${VERSION%.*} -DCMAKE_CXX_COMPILER=/usr/bin/${CXX%%-*}-${VERSION%.*} .. && make install)";
+        # install libcurl dependency
+        docker exec build /bin/bash -c "(cd /root/deps/libcurl && CC=/usr/bin/${CC%%-*}-${VERSION%.*} ./configure && make install)"
+        # build project with meson
         docker exec build /bin/bash -c "CXX=${CXX%%-*}-${VERSION%.*} CC=${CC%%-*}-${VERSION%.*} meson /root /root/build";
       fi
     fi

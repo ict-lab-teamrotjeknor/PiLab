@@ -15,8 +15,14 @@ LIBCXX_URL="http://llvm.org/releases/${VERSION}/libcxx-${VERSION}.src.tar.xz"
 LIBCXXABI_URL="http://llvm.org/releases/${VERSION}/libcxxabi-${VERSION}.src.tar.xz"
 CLANG_URL="http://releases.llvm.org/${VERSION}/clang+llvm-${VERSION}-x86_64-linux-gnu-debian8.tar.xz"
 
+# Make dependencies
 CMAKE_URL="https://cmake.org/files/v3.11/cmake-3.11.1-Linux-x86_64.tar.gz"
 MESON_URL="https://github.com/mesonbuild/meson/releases/download/${MESON_VERSION}/meson-${MESON_VERSION}.tar.gz"
+NINJA_URL="https://nirbheek.in/files/binaries/ninja/linux-amd64/ninja"
+
+# Library dependencies
+JSONC_URL="https://github.com/json-c/json-c/archive/json-c-0.13.1-20180305.tar.gz"
+LIBCURL_URL="https://curl.haxx.se/download/curl-7.60.0.tar.gz"
 
 if [[ ! -d ${DOCKERFILE%/*}  ]]; then
 	mkdir -p ${DOCKERFILE%/*}
@@ -81,10 +87,11 @@ echo "RUN \
 	Pin-Priority: 2\" > /etc/apt/preferences" >> $DOCKERFILE
 
 # (see: http://www.iasptk.com/ubuntu-fix-broken-package-best-solution)
-echo 'RUN if [[ -f /var/lib/apt/lists/lock ]]; then rm /var/lib/apt/lists/lock; fi' >> $DOCKERFILE
-echo 'RUN if [[ -f /var/cache/apt/archives/lock ]]; then rm /var/cache/apt/archives/lock; fi' >> $DOCKERFILE
+echo 'RUN if [ -f /var/lib/apt/lists/lock ]; then rm /var/lib/apt/lists/lock; fi' >> $DOCKERFILE
+echo 'RUN if [ -f /var/cache/apt/archives/lock ]; then rm /var/cache/apt/archives/lock; fi' >> $DOCKERFILE
 
 echo 'RUN apt-get update --fix-missing && apt-get -y install \
+  libcurl4                               \
   pkg-config                             \
 	binutils                               \
 	xz-utils                               \
@@ -94,21 +101,32 @@ echo 'RUN apt-get update --fix-missing && apt-get -y install \
 	git                                    \
 	tar'                  >> $DOCKERFILE
 
-# uncomment if you need to install latest cmake
-# echo "RUN \
-#         wget -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C /usr/local" >> $DOCKERFILE
+# Install latest cmake
+echo "RUN \
+        wget -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C /usr/local" >> $DOCKERFILE
 
-# intall latest ninja
+# Install latest ninja
 echo "RUN \
 	mkdir -p /root/tools; \
-        wget https://nirbheek.in/files/binaries/ninja/linux-amd64/ninja -O /root/tools/ninja; \
+        wget ${NINJA_URL} -O /root/tools/ninja; \
 	chmod +x /root/tools/ninja; \
 	ln -s /root/tools/ninja /usr/local/bin/ninja;" >> $DOCKERFILE
 
-# install latest meson
+# Install latest meson
 echo "RUN \
 	wget --no-check-certificate --quiet -O - ${MESON_URL} | tar --strip-components=1 -xz -C /root/tools; \
 	ln -s /root/tools/meson.py /usr/local/bin/meson;" >> $DOCKERFILE
+
+# Install latest json-c
+echo "RUN \
+     mkdir -p /root/deps/json/build; \
+       wget --no-check-certificate --quiet -O - ${JSONC_URL} | tar --strip-components=1 -xz -C /root/deps/json" >> $DOCKERFILE
+
+# Install latest libcurl
+echo "RUN \
+     mkdir -p /root/deps/libcurl; \
+       wget --no-check-certificate --quiet -O - ${LIBCURL_URL} | tar --strip-components=1 -xz -C /root/deps/libcurl" >> $DOCKERFILE
+
 
 if [[ "$COMPILER" = "clang" ]]; then
 	echo "RUN apt-get -y install \
