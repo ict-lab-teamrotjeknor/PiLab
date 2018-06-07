@@ -707,10 +707,10 @@ void hashtable_build_string_keys_values_cb(struct t_hashtable *hashtable,
 struct t_stringbuilder *hashtable_get_keys_values(struct t_hashtable *hashtable,
 						  int keys, int values)
 {
-	int len;
 	struct t_pilist *key_list;
 	struct t_pilist_node *node_ptr;
 	struct t_stringbuilder *sb_ptr;
+	int len;
 
 	if (!hashtable)
 		return NULL;
@@ -725,6 +725,8 @@ struct t_stringbuilder *hashtable_get_keys_values(struct t_hashtable *hashtable,
 
 	if (!sb_ptr)
 		return NULL;
+
+	hashtable->keys_values = sb_ptr;
 
 	/* compute length of string */
 	len = 0;
@@ -767,7 +769,66 @@ struct t_stringbuilder *hashtable_get_keys_values(struct t_hashtable *hashtable,
 					  &hashtable_build_string_values_cb),
 			hashtable->keys_values);
 	}
+
 	return hashtable->keys_values;
+}
+
+/*
+ * Get a hashtable property as a string wrapped inside a stringbuilder.
+ *
+ * Returns a pointer to the stringbuilder holding the string of the property,
+ * NULL otherwise.
+ *
+ * NOTE: The returned stringbuilder needs to be manually freed.
+ */
+
+struct t_stringbuilder *hashtable_get_string(struct t_hashtable *hashtable,
+					     const char *property)
+{
+	struct t_stringbuilder *sb_ptr;
+
+	sb_ptr = NULL;
+	if (hashtable && property) {
+		if (string_strcasecmp(property, "type_keys") == 0) {
+			sb_ptr = stringbuilder_create();
+			stringbuilder_append(
+				sb_ptr,
+				hashtable_type_string[hashtable->type_keys]);
+		} else if (string_strcasecmp(property, "type_values") == 0) {
+			sb_ptr = stringbuilder_create();
+			stringbuilder_append(
+				sb_ptr,
+				hashtable_type_string[hashtable->type_values]);
+		} else if (string_strcasecmp(property, "keys") == 0) {
+			sb_ptr = hashtable_get_keys_values(hashtable, 1, 0);
+		} else if (string_strcasecmp(property, "values") == 0) {
+			sb_ptr = hashtable_get_keys_values(hashtable, 0, 1);
+		} else if (string_strcasecmp(property, "keys_values") == 0) {
+			sb_ptr = hashtable_get_keys_values(hashtable, 1, 1);
+		}
+	}
+
+	return sb_ptr;
+}
+
+/*
+ * Set a hashtable property (pointer)
+ *
+ * NOTE: Currently the properties that are allowed to be set:
+ * - callback_free_key
+ * - callback_free_value
+ */
+
+void hashtable_set_pointer(struct t_hashtable *hashtable, const char *property,
+			   void *pointer)
+{
+	if (!hashtable || !property)
+		return;
+
+	if (string_strcasecmp(property, "callback_free_key") == 0)
+		hashtable->callback_free_key = pointer;
+	else if (string_strcasecmp(property, "callback_free_value") == 0)
+		hashtable->callback_free_value = pointer;
 }
 
 /*

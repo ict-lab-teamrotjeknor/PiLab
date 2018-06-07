@@ -78,7 +78,7 @@ struct t_hashtable {
 	 */
 	struct t_hashtable_item **htable;
 	/*
-	 * A representation of the keys/values wrapped inside a strinbuilder.
+	 * A representation of the keys/values wrapped inside a stringbuilder.
 	 */
 	struct t_stringbuilder *keys_values;
 
@@ -171,6 +171,11 @@ extern void hashtable_build_string_keys_values_cb(struct t_hashtable *hashtable,
 extern struct t_stringbuilder *
 	hashtable_get_keys_values(struct t_hashtable *hashtable, int keys,
 				  int values);
+extern struct t_stringbuilder *
+	hashtable_get_string(struct t_hashtable *hashtable,
+			     const char *property);
+extern void hashtable_set_pointer(struct t_hashtable *hashtable,
+				  const char *property, void *pointer);
 extern void hashtable_remove_item(struct t_hashtable *hashtable,
 				  struct t_hashtable_item *item,
 				  unsigned long long hash);
