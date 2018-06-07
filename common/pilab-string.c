@@ -242,7 +242,7 @@ char *string_strdup(const char *string)
 }
 
 /*
- * Concatenate a two strings.
+ * Concatenate two strings, effectively appending string2 to string1.
  *
  * Returns a pointer the new string, or NULL otherwise.
  */
@@ -250,8 +250,8 @@ char *string_strdup(const char *string)
 char *string_strcat(const char *string1, const char *string2)
 {
 	size_t slen1, slen2;
-	int i;
 	char *new_str;
+	size_t i;
 
 	if (!string1 || !string2)
 		return NULL;
@@ -259,18 +259,56 @@ char *string_strcat(const char *string1, const char *string2)
 	slen1 = strlen(string1);
 	slen2 = strlen(string2);
 
-	new_str = malloc(sizeof(*new_str) * (slen1 + slen2));
+	new_str = malloc(sizeof(*new_str) * (slen1 + slen2) + 1);
 
 	if (!new_str)
 		return NULL;
 
-	for (i = 0; i < (int)slen1; i++, string1++)
+	for (i = 0; i < slen1; i++, string1++)
 		new_str[i] = *string1;
-	for (; i < (int)(slen1 + slen2); i++, string2++)
+	for (; i < (slen1 + slen2); i++, string2++)
 		new_str[i] = *string2;
-	new_str[slen1 + slen2] = '\0';
+	new_str[slen1 + slen2 + 1] = '\0';
 
 	return new_str;
 }
 
-/* TODO: Write a custom string_strncat function */
+/*
+ * Concatenate two string, with n bytes specifying the number of bytes that
+ * will be appended to string1.
+ *
+ * NOTE: If n > strlen(string2), n will be shrunken to the length of string2.
+ *
+ * Returns a pointer the new string, or NULL otherwise.
+ */
+
+char *string_strncat(const char *string1, const char *string2, size_t n)
+{
+	size_t slen1, slen2;
+	char *new_str;
+	size_t i;
+
+	if (!string1 || !string2)
+		return NULL;
+
+	slen1 = strlen(string1);
+	slen2 = strlen(string2);
+
+	new_str = malloc(sizeof(*new_str) * (slen1 + slen2) + 1);
+
+	if (!new_str)
+		return NULL;
+
+	for (i = 0; i < slen1; i++, string1++)
+		new_str[i] = *string1;
+	/*
+	 * Shrink n, effectively making it the same length as slen1.
+	 */
+	if (n > slen2)
+		n -= n % slen2;
+	for (; i < (slen1 + n); i++, string2++)
+		new_str[i] = *string2;
+	new_str[slen1 + slen2 + 1] = '\0';
+
+	return new_str;
+}

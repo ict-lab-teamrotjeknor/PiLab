@@ -11,5 +11,7 @@ extern int string_strncmp(const char *string1, const char *string2, size_t n);
 extern int string_strcasecmp(const char *string1, const char *string2);
 extern int string_strcasencmp(const char *string1, const char *string2, size_t n);
 extern char *string_strdup(const char *string);
+extern char *string_strcat(const char *string1, const char *string2);
+extern char *string_strncat(const char *string1, const char *string2, size_t n);
 
 #endif
