@@ -339,7 +339,7 @@ void pilist_set_data(struct t_pilist_node *node, const void *data)
  * Get string pointer to node data
  */
 
-const char *pilist_node_data_string(struct t_pilist_node *node)
+char *pilist_node_data_string(struct t_pilist_node *node)
 {
 	if (node)
 		return node->data;
@@ -379,7 +379,7 @@ void pilist_remove_position(struct t_pilist *pilist, int position)
  * Removes the first node with matching data.
  */
 
-void pilist_remove_data(struct t_pilist *pilist, const void *data)
+void pilist_remove_data(struct t_pilist *pilist, void *data)
 {
 	struct t_pilist_node **node_ptr;
 	struct t_pilist_node *trash_ptr;

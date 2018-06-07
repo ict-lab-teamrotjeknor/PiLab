@@ -44,9 +44,9 @@ extern struct t_pilist_node *pilist_get_node(struct t_pilist *pilist,
 					     int position);
 extern void *pilist_get_data(struct t_pilist *pilist, int position);
 extern void pilist_set_data(struct t_pilist_node *node, const void *data);
-extern const char *pilist_node_data_string(struct t_pilist_node *node);
+extern char *pilist_node_data_string(struct t_pilist_node *node);
 extern void pilist_remove_position(struct t_pilist *pilist, int position);
-extern void pilist_remove_data(struct t_pilist *pilist, const void *data);
+extern void pilist_remove_data(struct t_pilist *pilist, void *data);
 extern void pilist_remove(struct t_pilist *pilist, struct t_pilist_node *node);
 extern void pilist_remove_all(struct t_pilist *pilist);
 
