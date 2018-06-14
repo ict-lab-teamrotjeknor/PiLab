@@ -1,110 +1,181 @@
+#include <unistd.h>
 #include <stdlib.h>
 #include "pilab-i2c-device.h"
-#include "pilab-list.h"
-
-static struct t_pilist *registration_list;
+#include "pilab-string.h"
 
 /*
- * Registers a new i2c device, effectively  adding it to the
- * `registration_list'.
- */
-
-void i2c_device_register(struct t_i2c_device *device)
-{
-	if (!device)
-		return;
-
-	pilist_add(registration_list, device);
-}
-
-/*
- * Deregister a i2c device, effectively removing it from the
- * `registration_list'.
- */
-
-void i2c_device_deregister(struct t_i2c_device *device)
-{
-	if (!device)
-		return;
-
-	pilist_remove_data(registration_list, device);
-}
-
-/*
- * Create a new i2c device.
+ * I2C device's concrete read implementation.
  *
- * Returns pointer to the newly created i2c device, NULL otherwise.
+ * Returns the read value of the device, otherwise -99999.
  */
 
-struct t_i2c_device *i2c_device_create_with_strategy(
-	t_i2c_device_loading_strategy *loading_strategy)
+int i2c_device_read(const void *instance, int pin)
+{
+	struct t_i2c_device *device;
+
+	if (!instance)
+		return -99999;
+
+	device = (struct t_i2c_device *)instance;
+
+	return (int)(device->callback_read)(device, pin);
+}
+
+/*
+ * I2C device's concrete write implementation.
+ *
+ * Writes a value to the specified pin of the device.
+ */
+
+void i2c_device_write(const void *instance, int pin, int value)
+{
+	struct t_i2c_device *device;
+
+	if (!instance)
+		return;
+
+	device = (struct t_i2c_device *)instance;
+
+	(void)(device->callback_write)(device, pin, value);
+}
+
+/*
+ * I2C device's concrete init implementation.
+ *
+ * Initialise the device, effectively calling the device's specific loading
+ * strategy, which will assign a handle to access the device.
+ */
+
+void i2c_device_init(const void *instance)
+{
+	struct t_i2c_device *device;
+	int fd;
+
+	if (!instance)
+		return;
+
+	device = (struct t_i2c_device *)instance;
+
+	fd = (int)(device->callback_loading_strategy)(device);
+
+	/* a handle is just a device specific file descriptor */
+	device->handle = fd;
+}
+
+/*
+ * I2C device's close handle implementation.
+ */
+
+void i2c_device_close_handle(const void *instance)
+{
+	struct t_i2c_device *device;
+
+	if (!instance)
+		return;
+
+	device = (struct t_i2c_device *)instance;
+
+	close(device->handle);
+}
+
+/*
+ * I2C device's concrete set pointer implementation.
+ *
+ * Set i2c device property (pointer)
+ *
+ * NOTE: Currently the properties that are allowed to be set:
+ * - callback_read
+ * - callback_write
+ */
+
+void i2c_device_set_pointer(const void *instance, const char *property,
+			    void *pointer)
+{
+	struct t_i2c_device *device;
+
+	if (!instance || !property)
+		return;
+
+	device = (struct t_i2c_device *)instance;
+
+	if (string_strcasecmp(property, "callback_read"))
+		device->callback_read = pointer;
+	else if (string_strcasecmp(property, "callback_write"))
+		device->callback_write = pointer;
+}
+
+/*
+ * I2C device's concrete get expander pin implementation.
+ *
+ * Retrieve the expansion pin device.
+ *
+ * Returns the expansion pin, 0 otherwise.
+ */
+
+int i2c_device_get_expansion_pin(const void *instance, int pin)
+{
+	struct t_i2c_device *device;
+
+	if (!instance)
+		return 0;
+
+	device = (struct t_i2c_device *)instance;
+
+	return device->pin_base + pin;
+}
+
+/*
+ * Creates a new i2c device and will add it as an abstract slave_device to the
+ * specified host_device.
+ *
+ * When setting up the i2c device as an extension module, make sure the
+ * the pin_base is >= 0x40. If you wish to create a * new device without setting
+ * it up as an extension module, set pin_base to 0x0.
+ *
+ * NOTE: Make sure that there are no overlapping pin offsets when registering
+ * the device as a extension module, as there is no boundary checking.
+ *
+ * Returns pointer to the newly created i2c_device, NULL otherwise.
+ */
+
+struct t_i2c_device *i2c_device_create(
+	int pin_base, int address, const char *device_name,
+	t_i2c_device_loading_strategy *callback_loading_strategy,
+	t_i2c_device_read *callback_read, t_i2c_device_write *callback_write)
 {
 	struct t_i2c_device *new_device;
+	struct t_slave_device *new_slave;
+
+	if (!callback_loading_strategy)
+		return NULL;
+
+	/* TODO: Log message: Pin base should be a number >= 0x64 */
+	if (pin_base < 0x40)
+		return NULL;
 
 	new_device = malloc(sizeof(*new_device));
 
-	/* TODO: Log error: Could not allocated memory for new device */
+	/* TODO: Log error: Could not allocate memory for new i2c device */
 	if (!new_device)
 		return NULL;
 
-	new_device->i2c_addr = 0;
-	new_device->pin_base = 0;
-	new_device->loading_strategy = loading_strategy;
+	new_slave = malloc(sizeof(*new_slave));
+
+	if (!new_slave) {
+		free(new_device);
+		return NULL;
+	}
+
+	new_device->pin_base = pin_base;
+	new_device->i2c_addr = address;
+	new_device->device_name = device_name;
+	new_device->callback_loading_strategy = callback_loading_strategy;
+	new_device->callback_read = callback_read;
+	new_device->callback_write = callback_write;
+
+	new_slave->read = &i2c_device_read;
+	new_slave->write = &i2c_device_write;
+	new_slave->close_handle = &i2c_device_close_handle;
 
 	return new_device;
-}
-
-/*
- * Create a new i2c device without specifying a loading strategy.
- *
- * Returns pointer to the newly created i2c device, NULL otherwise.
- */
-
-struct t_i2c_device *i2c_device_create()
-{
-	return i2c_device_create_with_strategy(NULL);
-}
-
-/*
- * Set/update the loading strategy of a particular i2c device.
- */
-
-void i2c_device_set_loading_strategy(
-	struct t_i2c_device *device,
-	t_i2c_device_loading_strategy *callback_loading_stategy)
-{
-	if (!device || !callback_loading_stategy)
-		return;
-
-	device->loading_strategy = callback_loading_stategy;
-}
-
-/*
- * What is born will eventually die.
- */
-
-void i2c_device_free(struct t_i2c_device *device)
-{
-	if (!device)
-		return;
-
-	free(device);
-}
-
-/*
- * Calculate the extension module pin from the pin base.
- *
- * NOTE: Call this method only if you need to interact with devices setup as an
- * extension module.
- *
- * Returns the an integer representing our new pin.
- */
-
-int i2c_device_ext_pin(struct t_i2c_device *device, int pin)
-{
-	/* TODO: Log event: pin error device not found <06-05-18, Sjors Sparreboom> */
-	if (!device)
-		return -1;
-
-	return (device->pin_base + pin);
 }

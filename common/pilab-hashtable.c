@@ -381,7 +381,7 @@ int hashtable_has_key(struct t_hashtable *hashtable, const void *key)
 /*
  * Convert a value (void *) to a string.
  *
- * Returns pointer to a static  buffer, which will be overwritten by subsequent
+ * Returns pointer to a static buffer, which will be overwritten by subsequent
  * calls to this function.
  */
 
@@ -528,7 +528,15 @@ void hashtable_build_value_list_fmap_cb(struct t_hashtable *hashtable,
 	(void)key;
 
 	list = (struct t_pilist *)data;
-	pilist_add(list, hashtable_to_string(hashtable->type_values, value));
+
+	const char *string_value;
+	string_value = hashtable_to_string(hashtable->type_values, value);
+
+	/*
+	 * string_value is null when pointer, or other invalid type, just pass
+	 * along the reference in that case.
+	 */
+	(string_value) ? pilist_add(list, string_value) : pilist_add(list, value);
 }
 
 /*
