@@ -23,6 +23,10 @@ NINJA_URL="https://nirbheek.in/files/binaries/ninja/linux-amd64/ninja"
 # Library dependencies
 JSONC_URL="https://github.com/json-c/json-c/archive/json-c-0.13.1-20180305.tar.gz"
 LIBCURL_URL="https://curl.haxx.se/download/curl-7.60.0.tar.gz"
+WIRING_PI_URL="git://git.drogon.net/wiringPi"
+
+CC=""
+CXX=""
 
 if [[ ! -d ${DOCKERFILE%/*}  ]]; then
 	mkdir -p ${DOCKERFILE%/*}
@@ -93,6 +97,7 @@ echo 'RUN if [ -f /var/cache/apt/archives/lock ]; then rm /var/cache/apt/archive
 echo 'RUN apt-get update --fix-missing && apt-get -y install \
   libcurl4                               \
   pkg-config                             \
+  sudo                                   \
 	binutils                               \
 	xz-utils                               \
 	python3-dev                            \
@@ -101,45 +106,57 @@ echo 'RUN apt-get update --fix-missing && apt-get -y install \
 	git                                    \
 	tar'                  >> $DOCKERFILE
 
-# Install latest cmake
+# Get the latest cmake
 echo "RUN \
         wget -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C /usr/local" >> $DOCKERFILE
 
-# Install latest ninja
+# Get the latest ninja
 echo "RUN \
 	mkdir -p /root/tools; \
         wget ${NINJA_URL} -O /root/tools/ninja; \
 	chmod +x /root/tools/ninja; \
 	ln -s /root/tools/ninja /usr/local/bin/ninja;" >> $DOCKERFILE
 
-# Install latest meson
+# Get the latest meson
 echo "RUN \
 	wget --no-check-certificate --quiet -O - ${MESON_URL} | tar --strip-components=1 -xz -C /root/tools; \
 	ln -s /root/tools/meson.py /usr/local/bin/meson;" >> $DOCKERFILE
 
-# Install latest json-c
+# Get the latest json-c
 echo "RUN \
      mkdir -p /root/deps/json/build; \
        wget --no-check-certificate --quiet -O - ${JSONC_URL} | tar --strip-components=1 -xz -C /root/deps/json" >> $DOCKERFILE
 
-# Install latest libcurl
+# Get the latest libcurl
 echo "RUN \
      mkdir -p /root/deps/libcurl; \
        wget --no-check-certificate --quiet -O - ${LIBCURL_URL} | tar --strip-components=1 -xz -C /root/deps/libcurl" >> $DOCKERFILE
 
+# Get the latest wiringPi
+echo "RUN \
+     mkdir -p /root/deps/wiringPi; \
+       git clone ${WIRING_PI_URL} /root/deps/wiringPi" >> $DOCKERFILE
 
 if [[ "$COMPILER" = "clang" ]]; then
 	echo "RUN apt-get -y install \
 		clang-${VERSION%.*}" >> $DOCKERFILE
+  CC="clang"
 fi
 
-if [[ "$COMPILER" = "clang" || "${COMPILER}" = "clang++" ]]; then
-	echo "RUN apt-get -y install \
-		clang-${VERSION%.*}" >> $DOCKERFILE
+if [[ "${COMPILER}" = "clang++" ]]; then
+	  echo "run apt-get -y install \
+		  clang-${VERSION%.*}" >> $DOCKERFILE
+    CXX="clang++"
 fi
 
-if [[ "$COMPILER" = "gcc" || "${COMPILER}" = "g++" ]]; then
+if [[ "$COMPILER" = "gcc" ]]; then
 	echo "RUN apt-get -y install \
-		gcc-${VERSION%%.*}    \
-		g++-${VERSION%%.*}" >> $DOCKERFILE
+		gcc-${VERSION%%.*}" >> $DOCKERFILE
+  CC="gcc"
+fi
+
+if [[ "${COMPILER}" = "g++" ]]; then
+	  echo "RUN apt-get -y install \
+		  g++-${VERSION%%.*}" >> $DOCKERFILE
+    CXX="g++"
 fi

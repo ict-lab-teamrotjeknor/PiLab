@@ -77,16 +77,24 @@ script:
     if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
       if   [[ "${CC%%-*}" == "gcc" || "${CXX%%-*}" == "g++" ]]; then
         # install json-c dependency
-        docker exec build /bin/bash -c "(cd /root/deps/json/build && cmake -DCMAKE_C_COMPILER=/usr/bin/${CC%%-*}-${VERSION%%.*} -DCMAKE_CXX_COMPILER=/usr/bin/${CXX%%-*}-${VERSION%%.*} .. && make install)";
+        docker exec build /bin/bash -c "(cd /root/deps/json/build && cmake -DCMAKE_C_COMPILER=/usr/bin/${CC%%-*}-${VERSION%%.*} -DCMAKE_CXX_COMPILER=/usr/bin/${CXX%%-*}-${VERSION%%.*} .. && make install)"
         # install libcurl dependency
         docker exec build /bin/bash -c "(cd /root/deps/libcurl && CC=/usr/bin/${CC%%-*}-${VERSION%%.*} ./configure && make install)"
+        # install wiringPi dependency
+        docker exec build /bin/bash -c "(cd /root/deps/wiringPi/wiringPi && make -j5 install CC=/usr/bin/${CC%%-*}-${VERSION%%.*})"
+        docker exec build /bin/bash -c "(cd /root/deps/wiringPi/devLib && make -j5 install CC=/usr/bin/${CC%%-*}-${VERSION%%.*})"
+        docker exec build /bin/bash -c "(cd /root/deps/wiringPi/gpio && make -j5 install CC=/usr/bin/${CC%%-*}-${VERSION%%.*})"
         # build project with meson
         docker exec build /bin/bash -c "CXX=${CXX%%-*}-${VERSION%%.*} CC=${CC%%-*}-${VERSION%%.*} meson /root /root/build";
       elif [[ "${CC%%-*}" == "clang" || "${CXX-*}" == "clang++" ]]; then
         # install json-c dependency
-        docker exec build /bin/bash -c "(cd /root/deps/json/build && cmake -DCMAKE_C_COMPILER=/usr/bin/${CC%%-*}-${VERSION%.*} -DCMAKE_CXX_COMPILER=/usr/bin/${CXX%%-*}-${VERSION%.*} .. && make install)";
+        docker exec build /bin/bash -c "(cd /root/deps/json/build && cmake -DCMAKE_C_COMPILER=/usr/bin/${CC%%-*}-${VERSION%.*} -DCMAKE_CXX_COMPILER=/usr/bin/${CXX%%-*}-${VERSION%.*} .. && make install)"
         # install libcurl dependency
         docker exec build /bin/bash -c "(cd /root/deps/libcurl && CC=/usr/bin/${CC%%-*}-${VERSION%.*} ./configure && make install)"
+        # install wiringPi dependency
+        docker exec build /bin/bash -c "(cd /root/deps/wiringPi/wiringPi && make -j5 install CC=/usr/bin/${CC%%-*}-${VERSION%.*})"
+        docker exec build /bin/bash -c "(cd /root/deps/wiringPi/devLib && make -j5 install CC=/usr/bin/${CC%%-*}-${VERSION%.*})"
+        docker exec build /bin/bash -c "(cd /root/deps/wiringPi/gpio && make -j5 install CC=/usr/bin/${CC%%-*}-${VERSION%.*})"
         # build project with meson
         docker exec build /bin/bash -c "CXX=${CXX%%-*}-${VERSION%.*} CC=${CC%%-*}-${VERSION%.*} meson /root /root/build";
       fi

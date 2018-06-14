@@ -536,7 +536,8 @@ void hashtable_build_value_list_fmap_cb(struct t_hashtable *hashtable,
 	 * string_value is null when pointer, or other invalid type, just pass
 	 * along the reference in that case.
 	 */
-	(string_value) ? pilist_add(list, string_value) : pilist_add(list, value);
+	(string_value) ? pilist_add(list, string_value) :
+			 pilist_add(list, value);
 }
 
 /*

@@ -116,7 +116,7 @@ void lcd_backlight(struct t_lcd *lcd, int pin, enum t_backlight_state state)
 
 	ext_pin = pin;
 	if (lcd->expander_chip)
-		ext_pin = lcd->expander_chip->callback_get_expansion_pin(
+		ext_pin = lcd->expander_chip->get_expansion_pin(
 			lcd->expander_chip->instance, pin);
 
 	pinMode(ext_pin, OUTPUT);
@@ -168,8 +168,8 @@ void lcd_relative_write(struct t_lcd *lcd, const char *string)
 	if (!lcd)
 		return;
 
-	rw = lcd->expander_chip->callback_get_expansion_pin(
-		lcd->expander_chip->instance, 0x01);
+	rw = lcd->expander_chip->get_expansion_pin(lcd->expander_chip->instance,
+						   0x01);
 	/* ca = lcd->expander_chip->callback_get_expansion_pin( */
 	/* 	lcd->expander_chip->instance, 0x03); */
 
@@ -216,8 +216,8 @@ void lcd_writeline(struct t_lcd *lcd, int y, const char *string)
 
 	if (!lcd)
 		return;
-	rw = lcd->expander_chip->callback_get_expansion_pin(
-		lcd->expander_chip->instance, 0x01);
+	rw = lcd->expander_chip->get_expansion_pin(lcd->expander_chip->instance,
+						   0x01);
 	/* ca = lcd->expander_chip->callback_get_expansion_pin( */
 	/* 	lcd->expander_chip->instance, 0x03); */
 
