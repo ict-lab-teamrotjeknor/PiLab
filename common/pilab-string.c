@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "pilab-string.h"
+#include "pilab-list.h"
 
 /*
  * Converts string to upper case.
@@ -242,35 +243,56 @@ char *string_strdup(const char *string)
 }
 
 /*
- * Concatenate two strings, effectively appending string2 to string1.
+ * string concatenation with a delimiter.
  *
- * Returns a pointer the new string, or NULL otherwise.
+ * NOTE: Unlike strcat this functions does needs to be cleaned  up afterwards.
+ *
+ * Returns a pointer to the concatenated string, NULL otherwise.
  */
 
-char *string_strcat(const char *string1, const char *string2)
+char *string_strcat_delimiter(const char *string1, const char *string2,
+			      const char *delimiter)
 {
-	size_t slen1, slen2;
+	size_t slen1, slen2, slen3, i;
 	char *new_str;
-	size_t i;
 
-	if (!string1 || !string2)
+	if (!string1 || !string2 || !delimiter)
 		return NULL;
 
 	slen1 = strlen(string1);
 	slen2 = strlen(string2);
+	slen3 = strlen(delimiter);
 
-	new_str = malloc(sizeof(*new_str) * (slen1 + slen2) + 1);
+	new_str = malloc(sizeof(*new_str) * (slen1 + slen3 + slen2) + 1);
 
 	if (!new_str)
 		return NULL;
 
 	for (i = 0; i < slen1; i++, string1++)
 		new_str[i] = *string1;
-	for (; i < (slen1 + slen2); i++, string2++)
+
+	for (; i < (slen1 + slen3); i++, delimiter++)
+		new_str[i] = *delimiter;
+
+	for (; i < (slen1 + slen3 + slen2); i++, string2++)
 		new_str[i] = *string2;
-	new_str[slen1 + slen2 + 1] = '\0';
+
+	new_str[slen1 + slen3 + slen2 + 1] = '\0';
 
 	return new_str;
+}
+
+/*
+ * Concatenate two strings, effectively appending string2 to string1.
+ *
+ * NOTE: Unlike strcat this functions does needs to be cleaned  up afterwards.
+ *
+ * Returns a pointer the new string, or NULL otherwise.
+ */
+
+char *string_strcat(const char *string1, const char *string2)
+{
+	return string_strcat_delimiter(string1, string2, "");
 }
 
 /*
@@ -278,6 +300,8 @@ char *string_strcat(const char *string1, const char *string2)
  * will be appended to string1.
  *
  * NOTE: If n > strlen(string2), n will be shrunken to the length of string2.
+ *
+ * NOTE: Unlike strcat this functions does needs to be cleaned  up afterwards.
  *
  * Returns a pointer the new string, or NULL otherwise.
  */
@@ -311,4 +335,121 @@ char *string_strncat(const char *string1, const char *string2, size_t n)
 	new_str[slen1 + slen2 + 1] = '\0';
 
 	return new_str;
+}
+
+/*
+ * Split a string on delimiters.
+ *
+ * Returns a new pilist with strings split of the delimiter, NULL otherwise.
+ */
+
+struct t_pilist *string_split(const char *string, const char *delimiter)
+{
+	struct t_pilist *result;
+	char *copy;
+	char *token;
+
+	result = pilist_create();
+
+	if (!result)
+		return NULL;
+
+	copy = string_strdup(string);
+
+	if (!copy) {
+		free(result);
+		return NULL;
+	}
+
+	token = strtok(copy, delimiter);
+	while (token) {
+		token = string_strdup(token);
+		if (!token) {
+			free(token);
+			free(copy);
+			free(result);
+			return NULL;
+		}
+		pilist_add(result, token);
+		token = strtok(NULL, delimiter);
+	}
+
+	free(copy);
+
+	return result;
+}
+
+/*
+ * Find the first occurrence of string2 inside a string1.
+ *
+ * Returns index of the first occurrence, otherwise -1.
+ */
+
+int string_find_first_occurrence(const char *string1, const char *string2)
+{
+	int i, found, index;
+
+	if (!string1 || !string2)
+		return -1;
+
+	index = 0;
+	while (string1[index]) {
+		if (string1[index] == string2[0]) {
+			i = 0;
+			found = 1;
+			while (string2[i] != '\0') {
+				if (string1[index + i] != string2[i]) {
+					found = 0;
+					break;
+				}
+				i++;
+			}
+		}
+
+		if (found)
+			break;
+
+		index++;
+	}
+
+	return (found) ? 1 : -1;
+}
+
+/*
+ * Replace first occurrence of string2 in string1 with string3.
+ *
+ * NOTE: This function returns a new string, which must be freed afterwards.
+ *
+ * Returns pointer to the new string, or NULL otherwise.
+ */
+
+char *string_replace_first(const char *string1, const char *string2,
+			   const char *string3)
+{
+	int index, slen1, slen3, i;
+	char *copy;
+
+	if (!string1 || !string2 || !string3)
+		return NULL;
+
+	if (string_strcmp(string3, ""))
+		return (copy = string_strdup(string1));
+
+	index = string_find_first_occurrence(string1, string2);
+
+	slen1 = strlen(string1);
+	slen3 = strlen(string3);
+
+	if (index > -1) {
+		copy = string_strdup(string1);
+		copy = realloc(copy, sizeof(char) * (slen1 + slen3));
+		memmove(&copy[index + slen3 -1], &copy[index], slen1 - index);
+
+		for (i = 0; i < slen3; ++i)
+			copy[index + i] = string3[i];
+
+		return copy;
+	}
+
+	return NULL;
 }

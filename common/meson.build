@@ -6,6 +6,7 @@ lib_pilab_common = static_library(
     'pilab-stringbuilder.c',
     'pilab-hashtable.c',
     'pilab-lcd.c',
+    'pilab-api-client.c',
   ),
   include_directories: pilab_inc
 )

@@ -19,6 +19,8 @@ extern struct t_stringbuilder *stringbuilder_create_size(size_t alloc_size);
 extern struct t_stringbuilder *stringbuilder_create(void);
 extern void stringbuilder_free(struct t_stringbuilder *sb);
 extern char *stringbuilder_resize(struct t_stringbuilder *sb, size_t capacity);
+extern void stringbuilder_append_nbytes(struct t_stringbuilder *sb,
+					const char *str, size_t n);
 extern void stringbuilder_append(struct t_stringbuilder *sb, const char *str);
 extern void stringbuilder_prepend(struct t_stringbuilder *sb, const char *str);
 extern char *stringbuilder_to_string(struct t_stringbuilder *sb);

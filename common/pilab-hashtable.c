@@ -916,6 +916,7 @@ void hashtable_free(struct t_hashtable *hashtable)
 
 	if (hashtable->keys_values)
 		stringbuilder_free(hashtable->keys_values);
+
 	free(hashtable->keys_values);
 	free(hashtable);
 }

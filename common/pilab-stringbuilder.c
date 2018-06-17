@@ -78,7 +78,6 @@ char *stringbuilder_resize(struct t_stringbuilder *sb, size_t capacity)
 		return NULL;
 
 	if ((sb->length + capacity) >= sb->size_alloc) {
-
 		new_str = realloc(sb->string, sizeof(char) * capacity);
 		if (!new_str) {
 			/* TODO: Insert error in log: Failed to allocate memory for stringbuilder resize */
@@ -93,24 +92,37 @@ char *stringbuilder_resize(struct t_stringbuilder *sb, size_t capacity)
 }
 
 /*
+ * Add n-bytes the end of the internal string buffer.
+ */
+
+void stringbuilder_append_nbytes(struct t_stringbuilder *sb, const char *str, size_t n)
+{
+
+	if (!str || !sb || *str == '\0')
+		return;
+
+	if (!stringbuilder_resize(sb, n))
+		return;
+
+	memcpy(sb->string + sb->length , str, n);
+	sb->length += n;
+	sb->string[sb->length + 1] = '\0';
+}
+
+/*
  * Add the provided string to the end of the internal string buffer.
  */
 
 void stringbuilder_append(struct t_stringbuilder *sb, const char *str)
 {
-	size_t str_len, sb_len;
+	size_t str_len;
 
-	if (!str || !sb || *str == '\0')
-		return;
-
-	if (!stringbuilder_resize(sb, strlen(str)))
+	if (!str)
 		return;
 
 	str_len = strlen(str);
-	sb_len = sb->length;
 
-	sb->length += str_len;
-	memcpy(sb->string + sb_len, str, str_len);
+	stringbuilder_append_nbytes(sb, str, str_len);
 }
 
 /*
@@ -128,16 +140,18 @@ void stringbuilder_prepend(struct t_stringbuilder *sb, const char *str)
 		return;
 
 	str_len = strlen(str);
+
 	sb_len = sb->length;
 
 	sb->length += str_len;
 	memmove(&sb->string[str_len], sb->string, sb_len);
 	for (size_t i = 0; i < str_len; ++i)
 		sb->string[i] = str[i];
+	sb->string[sb->length + 1] = '\0';
 }
 
 /*
- * Copy the internal string to a provided buffer
+ * Get a string and cleanup stringbuilder.
  *
  * Returns pointer to the string, or NULL if the string could not be retrieved.
  */
