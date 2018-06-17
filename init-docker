@@ -137,26 +137,13 @@ echo "RUN \
      mkdir -p /root/deps/wiringPi; \
        git clone ${WIRING_PI_URL} /root/deps/wiringPi" >> $DOCKERFILE
 
-if [[ "$COMPILER" = "clang" ]]; then
-	echo "RUN apt-get -y install \
-		clang-${VERSION%.*}" >> $DOCKERFILE
-  CC="clang"
-fi
-
-if [[ "${COMPILER}" = "clang++" ]]; then
-	  echo "run apt-get -y install \
-		  clang-${VERSION%.*}" >> $DOCKERFILE
-    CXX="clang++"
-fi
-
-if [[ "$COMPILER" = "gcc" ]]; then
-	echo "RUN apt-get -y install \
-		gcc-${VERSION%%.*}" >> $DOCKERFILE
-  CC="gcc"
-fi
-
-if [[ "${COMPILER}" = "g++" ]]; then
+if [[ "$COMPILER" = "clang" || "${COMPILER}" = "clang++" ]]; then
 	  echo "RUN apt-get -y install \
-		  g++-${VERSION%%.*}" >> $DOCKERFILE
-    CXX="g++"
+		clang-${VERSION%.*}" >> $DOCKERFILE
+fi
+
+if [[ "$COMPILER" = "gcc" || "${COMPILER}" = "g++" ]]; then
+	  echo "RUN apt-get -y install \
+		gcc-${VERSION%%.*}    \
+		g++-${VERSION%%.*}" >> $DOCKERFILE
 fi

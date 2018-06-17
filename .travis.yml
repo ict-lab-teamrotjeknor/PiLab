@@ -8,7 +8,7 @@ matrix:
 
     #  -- supported compilers  ------------------------------------------------
 
-    # clang 3.8
+   # clang 3.8
     - env: UNIT_TESTS=false C_COMPILER=clang-3.8 CXX_COMPILER=clang++-3.8 ENABLE_MEMCHECK=true
 
     # clang 3.9
@@ -31,6 +31,7 @@ matrix:
 
     # gcc 7
     - env: UNIT_TESTS=false C_COMPILER=gcc-7 CXX_COMPILER=g++-7 ENABLE_MEMCHECK=true
+
 
 before_install:
 
@@ -77,7 +78,7 @@ script:
     if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
       if   [[ "${CC%%-*}" == "gcc" || "${CXX%%-*}" == "g++" ]]; then
         # install json-c dependency
-        docker exec build /bin/bash -c "(cd /root/deps/json/build && cmake -DCMAKE_C_COMPILER=/usr/bin/${CC%%-*}-${VERSION%%.*} -DCMAKE_CXX_COMPILER=/usr/bin/${CXX%%-*}-${VERSION%%.*} .. && make install)"
+        docker exec build /bin/bash -c "(cd /root/deps/json/build && cmake -DCMAKE_C_COMPILER=/usr/bin/${CC%%-*}-${VERSION%%.*} -DCMAKE_CXX_COMPILER=/usr/bin/${CXX%%-*}-${VERSION%%.*} .. && make install)";
         # install libcurl dependency
         docker exec build /bin/bash -c "(cd /root/deps/libcurl && CC=/usr/bin/${CC%%-*}-${VERSION%%.*} ./configure && make install)"
         # install wiringPi dependency
@@ -88,7 +89,7 @@ script:
         docker exec build /bin/bash -c "CXX=${CXX%%-*}-${VERSION%%.*} CC=${CC%%-*}-${VERSION%%.*} meson /root /root/build";
       elif [[ "${CC%%-*}" == "clang" || "${CXX-*}" == "clang++" ]]; then
         # install json-c dependency
-        docker exec build /bin/bash -c "(cd /root/deps/json/build && cmake -DCMAKE_C_COMPILER=/usr/bin/${CC%%-*}-${VERSION%.*} -DCMAKE_CXX_COMPILER=/usr/bin/${CXX%%-*}-${VERSION%.*} .. && make install)"
+        docker exec build /bin/bash -c "(cd /root/deps/json/build && cmake -DCMAKE_C_COMPILER=/usr/bin/${CC%%-*}-${VERSION%.*} -DCMAKE_CXX_COMPILER=/usr/bin/${CXX%%-*}-${VERSION%.*} .. && make install)";
         # install libcurl dependency
         docker exec build /bin/bash -c "(cd /root/deps/libcurl && CC=/usr/bin/${CC%%-*}-${VERSION%.*} ./configure && make install)"
         # install wiringPi dependency
