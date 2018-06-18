@@ -21,6 +21,7 @@ prefix = get_option('prefix')
 
 jsonc = dependency('json-c', version: '>=0.13')
 curl  = dependency('libcurl')
+gtk3  = dependency('gtk+-3.0')
 git = find_program('git', required: false)
 
 add_project_arguments('-DSYSCONFDIR="/@0@"'.format(sysconfdir), language : 'c')

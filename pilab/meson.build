@@ -5,6 +5,7 @@ pilab_sources = files(
 pilab_deps = [
 	jsonc,
 	curl,
+  gtk3,
 ]
 
 executable(
