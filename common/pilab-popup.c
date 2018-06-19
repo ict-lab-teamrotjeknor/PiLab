@@ -41,7 +41,7 @@ void popup_init(struct t_popup *popup, int *argc, char ***argv)
 
 	popup->builder = gtk_builder_new();
 
-	gtk_builder_add_from_file(popup->builder, "popup.glade", NULL);
+	gtk_builder_add_from_file(popup->builder, PILAB_POPUP_GLADE_FILE, NULL);
 
 	popup->window = GTK_WIDGET(
 		gtk_builder_get_object(popup->builder, "window_main"));

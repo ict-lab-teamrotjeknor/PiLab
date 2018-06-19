@@ -2,6 +2,8 @@
 #define _PILAB_POPUP_H
 #include <gtk/gtk.h>
 
+#define PILAB_POPUP_GLADE_FILE "../popup.glade"
+
 typedef void(t_popup_on_button_clicked)(GtkButton *button, gpointer data);
 
 struct t_popup {
