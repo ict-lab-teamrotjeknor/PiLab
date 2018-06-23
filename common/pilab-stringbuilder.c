@@ -1,7 +1,9 @@
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include "pilab-stringbuilder.h"
 #include "pilab-string.h"
+#include "pilab-log.h"
 
 /*
  * Conjure up a new stringbuilder.
@@ -18,14 +20,18 @@ struct t_stringbuilder *stringbuilder_create_size(size_t alloc_size)
 	sb = malloc(sizeof(*sb));
 
 	if (!sb) {
-		/* TODO: Failed to allocate memory for char buffer in stringbuilder_create_size */
+		pilab_log(
+			LOG_ERROR,
+			"Could not allocate memory for stringbuilder in builderbuilder_create_size");
 		return NULL;
 	}
 
 	sb->string = calloc(size_alloc, sizeof(char));
 
 	if (!sb->string) {
-		/* TODO: Failed to allocate memory for char buffer in stringbuilder_create_size */
+		pilab_log(
+			LOG_ERROR,
+			"Could not allocate memory for internal buffer in builderbuilder_create_size");
 		free(sb);
 		return NULL;
 	}
@@ -73,18 +79,24 @@ void stringbuilder_free(struct t_stringbuilder *sb)
 char *stringbuilder_resize(struct t_stringbuilder *sb, size_t capacity)
 {
 	char *new_str;
+	int growth;
 
 	if (!sb)
 		return NULL;
 
-	if ((sb->length + capacity) >= sb->size_alloc) {
-		new_str = realloc(sb->string, sizeof(char) * capacity);
+	if (sb->size_alloc < (capacity + sb->length)) {
+		if ((sb->size_alloc * GROW_FACTOR) < (capacity + sb->length))
+			growth = capacity;
+		else
+			growth = GROW_FACTOR;
+		new_str = realloc(sb->string, (capacity * sb->size_alloc));
 		if (!new_str) {
-			/* TODO: Insert error in log: Failed to allocate memory for stringbuilder resize */
+			pilab_log(
+				LOG_DEBUG,
+				"Could not realloc memory for internal string buffer");
 			return NULL;
 		}
-
-		sb->size_alloc *= GROW_FACTOR;
+		sb->size_alloc *= growth;
 		sb->string = new_str;
 	}
 
@@ -95,18 +107,18 @@ char *stringbuilder_resize(struct t_stringbuilder *sb, size_t capacity)
  * Add n-bytes the end of the internal string buffer.
  */
 
-void stringbuilder_append_nbytes(struct t_stringbuilder *sb, const char *str, size_t n)
+void stringbuilder_append_nbytes(struct t_stringbuilder *sb, const char *str,
+				 size_t n)
 {
-
 	if (!str || !sb || *str == '\0')
 		return;
 
-	if (!stringbuilder_resize(sb, n))
+	if (!stringbuilder_resize(sb, n + 1))
 		return;
 
-	memcpy(sb->string + sb->length , str, n);
+	memcpy(sb->string + sb->length, str, n);
 	sb->length += n;
-	sb->string[sb->length + 1] = '\0';
+	sb->string[sb->length] = '\0';
 }
 
 /*

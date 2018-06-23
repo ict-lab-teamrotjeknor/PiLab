@@ -27,6 +27,8 @@ extern struct t_pilist_node *pilist_create_node(void);
 extern void pilist_free_node(struct t_pilist_node *node);
 extern void pilist_free(struct t_pilist *pilist);
 extern void pilist_add(struct t_pilist *pilist, const void *data);
+extern void pilist_add_pointer(struct t_pilist *pilist, const void *data);
+extern void pilist_add_last(struct t_pilist *pilist, const void *data);
 extern void pilist_clear(struct t_pilist *pilist);
 extern void pilist_foreach_node(struct t_pilist *pilist,
 				t_pilist_fmap_node *callback_fmap_node);

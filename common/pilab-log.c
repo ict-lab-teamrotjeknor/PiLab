@@ -10,28 +10,33 @@
 #include "pilab-log.h"
 
 static const char *pilab_log_priority_colors[] = {
-	[SILENT] = "",
-	[ERROR] = "\x1b[31m", // red
-	[WARNING] = "\x1b[33m", // yellow
-	[NOTICE] = "\x1b[34m", // blue
-	[INFO] = "\x1b[35m", // magenta
-	[DEBUG] = "\x1b[36m", // cyan
+	[LOG_SILENT] = "",
+	[LOG_ERROR] = "\x1b[31m", // red
+	[LOG_WARNING] = "\x1b[33m", // yellow
+	[LOG_NOTICE] = "\x1b[34m", // blue
+	[LOG_INFO] = "\x1b[35m", // magenta
+	[LOG_DEBUG] = "\x1b[36m", // cyan
 };
 
-static t_pilab_log_priority p = SILENT;
+static t_pilab_log_priority p = LOG_SILENT;
 static t_pilab_log_colors colors = ON;
 
-void pilab_log_init(logger_priority_t priority)
+void pilab_log_init(t_pilab_log_priority priority)
 {
 	p = priority;
 }
 
-void pilab_log_set_priority(logger_priority_t priority)
+void pilab_log_set_priority(t_pilab_log_priority priority)
 {
 	p = priority;
 }
 
-void pilab_log_toggle_colors(logger_colors_t mode)
+void pilab_log_set_colors(t_pilab_log_colors mode)
+{
+	colors = mode;
+}
+
+void pilab_log_toggle_colors()
 {
 	colors = (colors == ON) ? OFF : ON;
 }
@@ -90,7 +95,7 @@ bool _pilab_log_assert(bool condition, const char *filepath, int line,
 
 	va_list args;
 	va_start(args, format);
-	_log(filepath, line, ERROR, format, args);
+	_log(filepath, line, LOG_ERROR, format, args);
 	va_end(args);
 
 #ifndef NDEBUG
@@ -100,7 +105,7 @@ bool _pilab_log_assert(bool condition, const char *filepath, int line,
 	return false;
 }
 
-void _pilab_log(const char *filepath, int line, logger_priority_t priority,
+void _pilab_log(const char *filepath, int line, t_pilab_log_priority priority,
 		const char *format, ...)
 {
 	va_list args;
@@ -113,7 +118,7 @@ void _pilab_log_abort(const char *filepath, int line, const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);
-	_log(filepath, line, ERROR, format, args);
+	_log(filepath, line, LOG_ERROR, format, args);
 	va_end(args);
 	exit(EXIT_FAILURE);
 }

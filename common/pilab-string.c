@@ -1,7 +1,11 @@
+#define _POSIX_C_SOURCE 1
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include "pilab-string.h"
 #include "pilab-list.h"
+#include "pilab-log.h"
 
 /*
  * Converts string to upper case.
@@ -77,7 +81,7 @@ int string_charcasecmp(const char *string1, const char *string2)
 }
 
 /*
- * Compares two strings with the first n bytes (case dependent).
+ * Compares two strings (case dependent).
  *
  * Returns:
  * -1: string1 < string2
@@ -225,27 +229,30 @@ int string_strcasencmp(const char *string1, const char *string2, size_t n)
 char *string_strdup(const char *string)
 {
 	char *new_str;
+	size_t slen;
 
 	if (!string)
 		return NULL;
 
+	slen = strlen(string);
 	/* We need room for 1 more char, available for adding the '\0' */
-	new_str = malloc(sizeof(char) * strlen(string) + 1);
+	new_str = malloc(sizeof(char) * slen + 1);
 
 	if (!new_str) {
-		/* TODO: Log error message: Could not allocate enough memory for string_strdup */
+		pilab_log(LOG_DEBUG,
+			  "Could not allocate enough memory for string_strdup");
 		return NULL;
 	}
 
-	strcpy(new_str, string);
+	strncpy(new_str, string, slen + 1);
 
 	return new_str;
 }
 
 /*
- * string concatenation with a delimiter.
+ * String concatenation with a delimiter.
  *
- * NOTE: Unlike strcat this functions does needs to be cleaned  up afterwards.
+ * NOTE: The returned pointer needs to be freed afterwards.
  *
  * Returns a pointer to the concatenated string, NULL otherwise.
  */
@@ -277,15 +284,54 @@ char *string_strcat_delimiter(const char *string1, const char *string2,
 	for (; i < (slen1 + slen3 + slen2); i++, string2++)
 		new_str[i] = *string2;
 
-	new_str[slen1 + slen3 + slen2 + 1] = '\0';
+	new_str[slen1 + slen3 + slen2] = '\0';
 
 	return new_str;
 }
 
 /*
+ * String concatenation with a delimiter, recursively.
+ *
+ * NOTE: The pointer returned needs to be freed afterwards.
+ *
+ * Returns a pointer to the concatenated string, NULL otherwise.
+ */
+
+char *string_strcat_delimiter_recursive(char *string1, const char *delimiter,
+					int depth, ...)
+{
+	va_list ap;
+	int i;
+	char *new_string;
+	char *old_string;
+
+	if (!string1 || !delimiter)
+		return NULL;
+
+	va_start(ap, depth);
+	for (i = 0; i < depth; i++) {
+		if (i == 0) {
+			if (string_strcmp(string1, "") == 0)
+				new_string = string_strcat(string1,
+							   va_arg(ap, char *));
+			else
+				new_string = string_strcat_delimiter(
+					string1, va_arg(ap, char *), delimiter);
+		} else {
+			old_string = new_string;
+			new_string = string_strcat_delimiter(
+				new_string, va_arg(ap, char *), delimiter);
+			free(old_string);
+		}
+	}
+	va_end(ap);
+	return new_string;
+}
+
+/*
  * Concatenate two strings, effectively appending string2 to string1.
  *
- * NOTE: Unlike strcat this functions does needs to be cleaned  up afterwards.
+ * NOTE: The pointer returned needs to be freed afterwards.
  *
  * Returns a pointer the new string, or NULL otherwise.
  */
@@ -301,7 +347,7 @@ char *string_strcat(const char *string1, const char *string2)
  *
  * NOTE: If n > strlen(string2), n will be shrunken to the length of string2.
  *
- * NOTE: Unlike strcat this functions does needs to be cleaned  up afterwards.
+ * NOTE: The returned pointer needs to be freed afterwards.
  *
  * Returns a pointer the new string, or NULL otherwise.
  */
@@ -340,7 +386,7 @@ char *string_strncat(const char *string1, const char *string2, size_t n)
 /*
  * Split a string on delimiters.
  *
- * Returns a new pilist with strings split of the delimiter, NULL otherwise.
+ * Returns a new pilist with the split parts, NULL otherwise.
  */
 
 struct t_pilist *string_split(const char *string, const char *delimiter)
@@ -348,30 +394,27 @@ struct t_pilist *string_split(const char *string, const char *delimiter)
 	struct t_pilist *result;
 	char *copy;
 	char *token;
+	char *tok_res;
 
 	result = pilist_create();
-
 	if (!result)
 		return NULL;
 
 	copy = string_strdup(string);
-
 	if (!copy) {
 		free(result);
 		return NULL;
 	}
 
-	token = strtok(copy, delimiter);
-	while (token) {
-		token = string_strdup(token);
+	tok_res = copy;
+	while ((token = strtok_r(tok_res, delimiter, &tok_res))) {
 		if (!token) {
 			free(token);
 			free(copy);
 			free(result);
 			return NULL;
 		}
-		pilist_add(result, token);
-		token = strtok(NULL, delimiter);
+		pilist_add_last(result, token);
 	}
 
 	free(copy);
@@ -380,12 +423,66 @@ struct t_pilist *string_split(const char *string, const char *delimiter)
 }
 
 /*
+ * Split the string on the first occurrence of delimiter and return the string
+ * BEFORE the delimiter.
+ *
+ * NOTE: The pointer in this function needs to be cleaned afterwards.
+ *
+ * Return the first part of the string split, NULL otherwise.
+ */
+
+char *string_split_first(char *string, const char *delimiter)
+{
+	char *new_str;
+
+	new_str = string_read_until(string, delimiter);
+
+	return new_str;
+}
+
+/*
+ * Split the string on the last occurrence of delimiter and return the string
+ * AFTER the delimiter.
+ *
+ * NOTE: The pointer in this function needs to be cleaned afterwards.
+ *
+ * Return the last part of the string split, NULL otherwise.
+ */
+
+char *string_split_last(char *string, const char *delimiter)
+{
+	int index;
+	char *new_str;
+	size_t dlen;
+
+	if (!string || !delimiter)
+		return NULL;
+
+	index = string_find_first(string, delimiter);
+	if (index < 0)
+		return NULL;
+
+	dlen = strlen(delimiter);
+
+	new_str = string_strdup(string + index + dlen);
+	if (!new_str) {
+		pilab_log(
+			LOG_DEBUG,
+			"Could not allocate memory for string split in string_split_last");
+		return NULL;
+	}
+	free(string);
+
+	return string_strip_whitespace(new_str);
+}
+
+/*
  * Find the first occurrence of string2 inside a string1.
  *
  * Returns index of the first occurrence, otherwise -1.
  */
 
-int string_find_first_occurrence(const char *string1, const char *string2)
+int string_find_first(const char *string1, const char *string2)
 {
 	int i, found, index;
 
@@ -393,7 +490,8 @@ int string_find_first_occurrence(const char *string1, const char *string2)
 		return -1;
 
 	index = 0;
-	while (string1[index]) {
+	found = 0;
+	while (string1[index] != '\0') {
 		if (string1[index] == string2[0]) {
 			i = 0;
 			found = 1;
@@ -412,7 +510,7 @@ int string_find_first_occurrence(const char *string1, const char *string2)
 		index++;
 	}
 
-	return (found) ? 1 : -1;
+	return (found) ? index : -1;
 }
 
 /*
@@ -435,7 +533,7 @@ char *string_replace_first(const char *string1, const char *string2,
 	if (string_strcmp(string3, ""))
 		return (copy = string_strdup(string1));
 
-	index = string_find_first_occurrence(string1, string2);
+	index = string_find_first(string1, string2);
 
 	slen1 = strlen(string1);
 	slen3 = strlen(string3);
@@ -443,7 +541,7 @@ char *string_replace_first(const char *string1, const char *string2,
 	if (index > -1) {
 		copy = string_strdup(string1);
 		copy = realloc(copy, sizeof(char) * (slen1 + slen3));
-		memmove(&copy[index + slen3 -1], &copy[index], slen1 - index);
+		memmove(&copy[index + slen3 - 1], &copy[index], slen1 - index);
 
 		for (i = 0; i < slen3; ++i)
 			copy[index + i] = string3[i];
@@ -452,4 +550,76 @@ char *string_replace_first(const char *string1, const char *string2,
 	}
 
 	return NULL;
+}
+
+/*
+ * Strip all the leading and trailing whitespace.
+ *
+ * NOTE: The string will be created with a call to string_strdup, so it needs to
+ * be freed afterwards.
+ *
+ * Returns pointer to the new string, NULL otherwise.
+ */
+
+char *string_strip_whitespace(char *string)
+{
+	char *new_str;
+	char *old_str;
+	int i;
+
+	if (!string || *string == '\0')
+		return string;
+
+	old_str = string;
+
+	while (*string == ' ' || *string == '\t')
+		string++;
+
+	new_str = string_strdup(string);
+	free(old_str);
+
+	for (i = 0; new_str[i] != '\0'; ++i)
+		;
+
+	do {
+		i--;
+	} while (i >= 0 && (new_str[i] == ' ' || new_str[i] == '\t'));
+
+	new_str[i + 1] = '\0';
+
+	return new_str;
+}
+
+/*
+ * Read a string until first encountering the occurrence of string2.
+ *
+ * NOTE: The returned pointer needs to be cleaned afterwards.
+ *
+ * Returns NULL, if it couldn't find the occurrence, otherwise a pointer to a
+ * new allocated string.
+ */
+
+char *string_read_until(const char *string1, const char *string2)
+{
+	int index;
+	char *new_str;
+
+	if (!string1 || !string2)
+		return NULL;
+
+	index = string_find_first(string1, string2);
+	if (index < 0)
+		return NULL;
+
+	new_str = calloc(index + 1, sizeof(char));
+	if (!new_str) {
+		pilab_log(
+			LOG_DEBUG,
+			"Could not allocate memory for read until in string_read_until");
+		return NULL;
+	}
+
+	strncpy(new_str, string1, index);
+
+	return new_str;
 }

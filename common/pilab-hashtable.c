@@ -22,7 +22,7 @@ int hashtable_get_type(const char *type)
 		return -1;
 
 	for (int i = 0; i < HASHTABLE_NUM_TYPES; ++i)
-		if (string_charcasecmp(hashtable_type_string[i], type) == 0)
+		if (string_strcasecmp(hashtable_type_string[i], type) == 0)
 			return i;
 
 	/* type was not found */

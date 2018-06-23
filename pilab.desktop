@@ -1,5 +1,5 @@
 [Desktop Entry]
 Name=pilab
 Comment=SirJls's Pi laboratory
-Exec=pilab
+Exec=gksudo /usr/bin/pilab
 Type=Application

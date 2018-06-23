@@ -19,12 +19,17 @@ datadir = get_option('datadir')
 sysconfdir = get_option('sysconfdir')
 prefix = get_option('prefix')
 
-jsonc = dependency('json-c', version: '>=0.13')
-curl  = dependency('libcurl')
-gtk3  = dependency('gtk+-3.0')
-git = find_program('git', required: false)
+jsonc     = dependency('json-c', version: '>=0.13')
+curl      = dependency('libcurl')
+gtk3      = dependency('gtk+-3.0')
+git       = find_program('git', required: false)
+wpi       = cc.find_library('wiringPi', dirs: ['/usr/local/lib'])
+wpi_dev   = cc.find_library('wiringPiDev', dirs: ['/usr/local/lib'])
+pthread   = cc.find_library('pthread')
+x11       = cc.find_library('X11')
+x11t      = cc.find_library('Xtst')
 
-add_project_arguments('-DSYSCONFDIR="/@0@"'.format(sysconfdir), language : 'c')
+add_project_arguments('-DSYSCONFDIR="@0@"'.format(sysconfdir), language : 'c')
 
 version = get_option('pilab_version')
 
@@ -59,7 +64,24 @@ configure_file(
   install_dir: sysconfdir + '/pilab'
 )
 
+glade_data = configuration_data()
+
+configure_file(
+  configuration: glade_data,
+	input: 'popup.glade',
+	output: 'popup.glade',
+  install_dir: sysconfdir + '/pilab'
+)
+
+sensor_data = configuration_data()
+configure_file(
+  configuration: sensor_data,
+	input: 'sensors.in',
+	output: '@BASENAME@',
+  install_dir: sysconfdir + '/pilab'
+)
+
 install_data(
   'pilab.desktop',
-  install_dir: datadir + '/pilab-sessions'
+  install_dir: datadir + '/applications'
 )

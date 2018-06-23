@@ -1,6 +1,7 @@
 #ifndef _PILAB_STRINGBUILDER_H
 #define _PILAB_STRINGBUILDER_H
 #include <stdint.h>
+#include <unistd.h>
 
 #define GROW_FACTOR 2
 

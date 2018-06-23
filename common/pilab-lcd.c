@@ -27,7 +27,6 @@ struct t_lcd *lcd_4bit_create(int rows, int columns, int rs, int en, int db[4])
 		     0, 0);
 
 	if (fd == -1) {
-		/* TODO: Log event: error with initializing lcd  <06-05-18, Sjors Sparreboom> */
 		free(lcd);
 		return NULL;
 	}
@@ -68,7 +67,6 @@ struct t_lcd *lcd_8bit_create(int rows, int columns, int rs, int en, int db[8])
 		     db[4], db[5], db[6], db[7]);
 
 	if (fd == -1) {
-		/* TODO: Log event: error with initializing lcd  <06-05-18, Sjors Sparreboom> */
 		free(lcd);
 		return NULL;
 	}
@@ -161,8 +159,7 @@ void hd44780_clearscreen(struct t_lcd *lcd)
 
 void lcd_relative_write(struct t_lcd *lcd, const char *string)
 {
-	/* ca */
-	int rw, ya, xa;
+	int rw, ca, ya, xa;
 	size_t len;
 
 	if (!lcd)
@@ -170,19 +167,18 @@ void lcd_relative_write(struct t_lcd *lcd, const char *string)
 
 	rw = lcd->expander_chip->get_expansion_pin(lcd->expander_chip->instance,
 						   0x01);
-	/* ca = lcd->expander_chip->callback_get_expansion_pin( */
-	/* 	lcd->expander_chip->instance, 0x03); */
+	ca = lcd->expander_chip->get_expansion_pin(lcd->expander_chip->instance,
+						   0x03);
 
 	pinMode(rw, OUTPUT);
+	pinMode(ca, OUTPUT);
 
 	digitalWrite(rw, LOW);
-	/* digitalWrite(ca, HIGH); */
+	digitalWrite(ca, HIGH);
 
 	len = strlen(string);
 	ya = ((len + lcd->cursor->x) / lcd->columns);
 	xa = ((len + lcd->cursor->x) % lcd->columns);
-
-	/* TODO: Error to log, invalid write operation <07-05-18, Sjors Sparreboom> */
 
 	/* sanity checks */
 	if ((lcd->cursor->y < 0) || (lcd->cursor->y > lcd->rows))
@@ -210,27 +206,26 @@ void lcd_relative_write(struct t_lcd *lcd, const char *string)
 
 void lcd_writeline(struct t_lcd *lcd, int y, const char *string)
 {
-	/* ca */
-	int rw, ya, xa;
+	int rw, ca, ya, xa;
 	size_t len;
 
 	if (!lcd)
 		return;
+
 	rw = lcd->expander_chip->get_expansion_pin(lcd->expander_chip->instance,
 						   0x01);
-	/* ca = lcd->expander_chip->callback_get_expansion_pin( */
-	/* 	lcd->expander_chip->instance, 0x03); */
+	ca = lcd->expander_chip->get_expansion_pin(lcd->expander_chip->instance,
+						   0x03);
 
 	pinMode(rw, OUTPUT);
+	pinMode(ca, OUTPUT);
 
 	digitalWrite(rw, LOW);
-	/* digitalWrite(ca, HIGH); */
+	digitalWrite(ca, HIGH);
 
 	len = strlen(string);
 	ya = (int)(len / lcd->columns);
 	xa = (len % lcd->columns);
-
-	/* TODO: Error to log, invalid write operation <07-05-18, Sjors Sparreboom> */
 
 	/* sanity checks */
 	if ((y < 0) || (y >= lcd->rows))

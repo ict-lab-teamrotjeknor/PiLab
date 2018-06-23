@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include "pilab-string.h"
 #include "pilab-list.h"
@@ -124,6 +125,75 @@ void pilist_add(struct t_pilist *pilist, const void *data)
 	pilist->head = new_node;
 }
 
+void pilist_add_pointer(struct t_pilist *pilist, const void *data)
+{
+	struct t_pilist_node *new_node;
+
+	if (!pilist || !data)
+		return;
+
+	new_node = pilist_reuse_old_node(pilist);
+
+	if (new_node)
+		; /* Good, we can reuse allocated memory */
+	else if ((new_node = pilist_create_node()))
+		pilist->capacity++;
+	else
+		return;
+
+	pilist->size++;
+	new_node->data = (void *)data;
+
+	if (!pilist->head) {
+		pilist->head = new_node;
+		return;
+	}
+
+	new_node->next = pilist->head;
+	pilist->head = new_node;
+}
+
+/*
+ * Adds an element at the end of the list.
+ *
+ * NOTE: This operation is very expensive for long lists O(n).
+ * Please use pilist_add.
+ *
+ * This element is copied so it is safe to free the reference to data.
+ */
+
+void pilist_add_last(struct t_pilist *pilist, const void *data)
+{
+	struct t_pilist_node **node_ptr;
+	struct t_pilist_node *new_node;
+
+	if (!pilist || !data)
+		return;
+
+	new_node = pilist_reuse_old_node(pilist);
+	if (new_node)
+		; /* Good, we can reuse allocated memory */
+	else if ((new_node = pilist_create_node()))
+		pilist->capacity++;
+	else
+		return;
+
+	pilist->size++;
+	new_node->data = string_strdup((const char *)data);
+
+	if (!pilist->head) {
+		pilist->head = new_node;
+		return;
+	}
+
+	node_ptr = &pilist->head;
+
+	while (*node_ptr)
+		node_ptr = &(*node_ptr)->next;
+
+	*node_ptr = new_node;
+}
+
 /*
  * Clear all the nodes in the list.
  *
@@ -144,39 +214,49 @@ void pilist_clear(struct t_pilist *pilist)
 }
 
 /*
- * Go over each node and call the given function.
+ * Go over each node's data and call the given function.
  *
- * The function/callback takes a const void *.
+ * The function/callback takes a struct t_pilist_node *.
  */
 
 void pilist_foreach_node(struct t_pilist *pilist,
 			 t_pilist_fmap_node *callback_fmap_node)
 {
 	struct t_pilist_node *node_ptr;
+	struct t_pilist_node *node_ptr_old;
 
 	if (!pilist || !callback_fmap_node || !pilist->head)
 		return;
 
-	for (node_ptr = pilist->head; node_ptr; node_ptr = node_ptr->next)
-		callback_fmap_node(node_ptr);
+	node_ptr = pilist->head;
+	while(node_ptr) {
+		node_ptr_old = node_ptr;
+		node_ptr = node_ptr->next;
+		callback_fmap_node(node_ptr_old);
+	}
 }
 
 /*
- * Go over each node's data and call the given function.
+ * Go over each node and call the given function.
  *
- * The function/callback takes a struct t_pilist_node *.
+ * The function/callback takes a const void *.
  */
 
 void pilist_foreach_node_data(struct t_pilist *pilist,
 			      t_pilist_fmap_node_data *callback_fmap_node_data)
 {
 	struct t_pilist_node *node_ptr;
+	struct t_pilist_node *node_ptr_old;
 
 	if (!pilist || !callback_fmap_node_data || !pilist->head)
 		return;
 
-	for (node_ptr = pilist->head; node_ptr; node_ptr = node_ptr->next)
-		callback_fmap_node_data(node_ptr->data);
+	node_ptr = pilist->head;
+	while(node_ptr) {
+		node_ptr_old = node_ptr;
+		node_ptr = node_ptr->next;
+		callback_fmap_node_data(node_ptr_old->data);
+	}
 }
 
 /*
@@ -309,7 +389,7 @@ struct t_pilist_node *pilist_get_node(struct t_pilist *pilist, int position)
 }
 
 /*
- * Get a node from the list by position.
+ * Get a node's data from the list by position.
  *
  * Returns a reference to the data, NULL otherwise.
  */

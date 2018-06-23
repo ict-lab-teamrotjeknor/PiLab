@@ -1,0 +1,7 @@
+# Uncomment the devices to load the modules.
+#
+# The format is given below:
+# -----------------------------------------------------------------------------------
+#name   type    pinbase {address}
+ds18b20 gpio    100     216dc3000900
+hd44780 lcd_i2c 200     0x27
