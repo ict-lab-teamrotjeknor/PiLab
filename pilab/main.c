@@ -172,7 +172,7 @@ void *detect_press()
 {
 	Display *display;
 	unsigned int keycode;
-	int pins[] = { 6, 13, 17, 19, 22, 26 };
+	int pins[] = { 6, 13, 16, 19, 22, 26 };
 
 	for (int i = 0; i < 4; i++)
 		pinMode(pins[i], INPUT);
@@ -194,12 +194,12 @@ void *detect_press()
 			XFlush(display);
 			pilab_log(LOG_DEBUG, "button number %d pressed\n", 13);
 			sleep(1);
-		} else if (digitalRead(17) == HIGH) {
+		} else if (digitalRead(16) == HIGH) {
 			keycode = XKeysymToKeycode(display, XK_d);
 			XTestFakeKeyEvent(display, keycode, True, 0);
 			XTestFakeKeyEvent(display, keycode, False, 0);
 			XFlush(display);
-			pilab_log(LOG_DEBUG, "button number %d pressed\n", 17);
+			pilab_log(LOG_DEBUG, "button number %d pressed\n", 16);
 			sleep(1);
 		} else if (digitalRead(19) == HIGH) {
 			keycode = XKeysymToKeycode(display, XK_r);
